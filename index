@@ -1,0 +1,1406 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Play, Pause, Brain, Type, Trophy, CheckCircle, XCircle, Grid3x3, Lightbulb, Delete, Star, Sparkles, Music, Volume2, VolumeX, Link2, Clock, Layers, Palette, Droplet } from 'lucide-react';
+
+// --- DATA SOAL SUSUN KATA (50 Soal) ---
+const susunKataData = [
+  { word: "KUCING", hint: "Hewan peliharaan yang suka mengeong" },
+  { word: "MATAHARI", hint: "Pusat tata surya kita" },
+  { word: "SEPATU", hint: "Alas kaki pelindung telapak" },
+  { word: "KOMPUTER", hint: "Alat elektronik canggih pengetik" },
+  { word: "PESAWAT", hint: "Kendaraan besar di udara" },
+  { word: "BINTANG", hint: "Benda langit berkelap-kelip" },
+  { word: "KAMERA", hint: "Alat untuk memotret momen" },
+  { word: "SEKOLAH", hint: "Tempat siswa untuk belajar" },
+  { word: "TELEVISI", hint: "Alat elektronik penayang gambar" },
+  { word: "KULKAS", hint: "Mesin pendingin makanan" },
+  { word: "SEPEDA", hint: "Kendaraan roda dua yang dikayuh" },
+  { word: "LEMARI", hint: "Tempat menyimpan pakaian" },
+  { word: "PENSIL", hint: "Alat tulis berbahan kayu dan grafit" },
+  { word: "BUKU", hint: "Jendela dunia berisi kumpulan halaman" },
+  { word: "BENDERA", hint: "Kain lambang suatu negara" },
+  { word: "GUNTING", hint: "Alat tajam pemotong kertas" },
+  { word: "PAYUNG", hint: "Pelindung kala hujan dan panas" },
+  { word: "CERMIN", hint: "Benda untuk melihat pantulan diri" },
+  { word: "KACAMATA", hint: "Alat bantu penglihatan" },
+  { word: "DOMPET", hint: "Tempat menyimpan uang dan kartu" },
+  { word: "HELM", hint: "Pelindung kepala saat berkendara" },
+  { word: "LAMPU", hint: "Sumber cahaya buatan manusia" },
+  { word: "PISAU", hint: "Alat tajam pengerat di dapur" },
+  { word: "SENDOK", hint: "Alat makan berbentuk oval cekung" },
+  { word: "GARPU", hint: "Alat makan berujung tajam" },
+  { word: "PIRING", hint: "Wadah datar untuk makan" },
+  { word: "GELAS", hint: "Wadah tinggi untuk minum" },
+  { word: "SELIMUT", hint: "Penghangat badan saat tidur" },
+  { word: "BANTAL", hint: "Alas kepala saat berbaring" },
+  { word: "KASUR", hint: "Alas empuk untuk tidur" },
+  { word: "PINTU", hint: "Akses buka tutup masuk ruangan" },
+  { word: "JENDELA", hint: "Tempat masuk cahaya ke rumah" },
+  { word: "ATAP", hint: "Pelindung bagian atas rumah" },
+  { word: "PAGAR", hint: "Pembatas keamanan area luar" },
+  { word: "KEBUN", hint: "Area tanam bunga atau sayur" },
+  { word: "POHON", hint: "Tumbuhan berbatang kayu keras" },
+  { word: "DAUN", hint: "Bagian tanaman berwarna hijau" },
+  { word: "AKAR", hint: "Bagian tanaman penyerap air" },
+  { word: "HUTAN", hint: "Kawasan luas penuh perpohonan" },
+  { word: "SUNGAI", hint: "Aliran air alami menuju laut" },
+  { word: "LAUT", hint: "Kumpulan air asin yang luas" },
+  { word: "GUNUNG", hint: "Dataran yang sangat tinggi" },
+  { word: "AWAN", hint: "Gumpalan uap air di angkasa" },
+  { word: "HUJAN", hint: "Tetesan air yang turun ke bumi" },
+  { word: "ANGIN", hint: "Udara yang terus bergerak" },
+  { word: "PASIR", hint: "Butiran kecil batu di pantai" },
+  { word: "API", hint: "Panas bercahaya butuh bahan bakar" },
+  { word: "ASAP", hint: "Gas hasil pembakaran" },
+  { word: "PELANGI", hint: "Lengkungan warna-warni sehabis hujan" },
+  { word: "JAM", hint: "Alat mekanis penunjuk waktu" }
+];
+
+// --- DATA SOAL ASAH OTAK (50 Soal) ---
+const asahOtakData = [
+  { question: "Apa yang selalu datang tapi tidak pernah tiba?", options: ["Hari esok", "Kiamat", "Tamu", "Masa lalu"], answer: "Hari esok" },
+  { question: "Bulan apa yang memiliki 28 hari?", options: ["Februari saja", "Semua bulan", "Januari", "Bulan kabisat"], answer: "Semua bulan" },
+  { question: "Punya banyak gigi tapi tidak bisa menggigit?", options: ["Gergaji", "Sisir", "Roda gigi", "Hiu"], answer: "Sisir" },
+  { question: "Benda yang jika ditutup menjadi tongkat, dibuka menjadi tenda?", options: ["Tikar", "Payung", "Pintu", "Buku"], answer: "Payung" },
+  { question: "Bisa dipegang tapi tidak bisa disentuh?", options: ["Janji", "Angin", "Bayangan", "Api"], answer: "Janji" },
+  { question: "Semakin banyak diambil, semakin besar ukurannya?", options: ["Gunung", "Lubang", "Uang", "Ilmu"], answer: "Lubang" },
+  { question: "Punya lengan tapi tidak bisa bertepuk tangan?", options: ["Patung", "Baju", "Pohon", "Boneka"], answer: "Baju" },
+  { question: "Punya 4 kaki tapi sama sekali tidak bisa berjalan?", options: ["Meja", "Anjing", "Mobil", "Sepatu"], answer: "Meja" },
+  { question: "Hitam saat dibeli, merah saat dipakai, abu-abu saat dibuang?", options: ["Besi", "Arang", "Kertas", "Plastik"], answer: "Arang" },
+  { question: "Punya banyak kata, tapi tidak bisa berbicara?", options: ["Radio", "Buku", "Kamus", "Telepon"], answer: "Buku" },
+  { question: "Apa yang selalu naik saat hujan turun?", options: ["Burung", "Awan", "Payung", "Katak"], answer: "Payung" },
+  { question: "Punya mata satu, tapi tidak bisa melihat apa-apa?", options: ["Kamera", "Jarum", "Badai", "Mata uang"], answer: "Jarum" },
+  { question: "Bisa keliling dunia tapi selalu diam di sudut?", options: ["Prangko", "Satelit", "Bulan", "Pilot"], answer: "Prangko" },
+  { question: "Punya kepala dan ekor, tapi tidak punya badan?", options: ["Ular", "Koin", "Layangan", "Kereta"], answer: "Koin" },
+  { question: "Tinggi saat masih muda, namun menjadi pendek saat tua?", options: ["Bambu", "Manusia", "Lilin", "Pohon"], answer: "Lilin" },
+  { question: "Bisa pecah berantakan walau tak pernah disentuh?", options: ["Gelas", "Keheningan", "Telur", "Batu"], answer: "Keheningan" },
+  { question: "Milikmu, tetapi lebih sering digunakan oleh orang lain?", options: ["Uang", "Nama", "Pakaian", "Hobi"], answer: "Nama" },
+  { question: "Punya banyak daun, tetapi bukan pohon?", options: ["Pintu", "Jendela", "Buku", "Meja"], answer: "Pintu" },
+  { question: "Tidak memiliki nyawa sama sekali, namun bisa mati?", options: ["Baterai", "Angin", "Bayangan", "Cinta"], answer: "Baterai" },
+  { question: "Bila air menjadi es, lantas es berubah menjadi apa?", options: ["Api", "Embun", "Salju", "Air"], answer: "Air" },
+  { question: "Jika diikat ia berjalan, jika dilepas ia malah terdiam?", options: ["Tali", "Sepatu", "Anjing", "Kuda"], answer: "Sepatu" },
+  { question: "Bisa menangis tanpa mata, bisa melayang tanpa sayap?", options: ["Burung", "Awan", "Pesawat", "Nyamuk"], answer: "Awan" },
+  { question: "Punya ibu jari dan 4 jari lain, tapi tak bernyawa?", options: ["Robot", "Patung", "Sarung tangan", "Bayangan"], answer: "Sarung tangan" },
+  { question: "Jika kamu membaginya, kamu justru kehilangannya?", options: ["Cinta", "Uang", "Rahasia", "Makanan"], answer: "Rahasia" },
+  { question: "Punya kota tanpa bangunan, punya laut tanpa air, punya hutan tanpa pohon?", options: ["Mimpi", "Peta", "Lukisan", "Novel"], answer: "Peta" },
+  { question: "Ruangan apa yang dipastikan tidak memiliki pintu maupun jendela?", options: ["Ruang hampa", "Kamar mandi", "Jamur", "Gua"], answer: "Jamur" },
+  { question: "Selalu jatuh ke bawah, tetapi kita justru melihatnya ke atas?", options: ["Bintang jatuh", "Genteng bocor", "Hujan", "Pesawat"], answer: "Genteng bocor" },
+  { question: "Lebih ringan dari bulu, tapi tak ada manusia yang bisa menahannya lama?", options: ["Udara", "Napas", "Janji", "Pikiran"], answer: "Napas" },
+  { question: "Binatang apa yang matanya di kepala, kakinya juga di kepala?", options: ["Kutu rambut", "Laba-laba", "Gurita", "Kelabang"], answer: "Kutu rambut" },
+  { question: "Selalu bertambah banyak dan tak pernah bisa berkurang?", options: ["Uang", "Rambut", "Umur", "Teman"], answer: "Umur" },
+  { question: "Masuknya harus miring, keluarnya pun juga miring?", options: ["Kancing baju", "Kepiting", "Kunci pintu", "Gigi"], answer: "Kancing baju" },
+  { question: "Semakin banyak yang ditinggalkan, semakin banyak ia ada di belakangmu?", options: ["Harta", "Jejak kaki", "Kenangan", "Bayangan"], answer: "Jejak kaki" },
+  { question: "Tidak bisa bicara tapi pasti membalas suaramu dengan akurat?", options: ["Anjing", "Radio", "Gema", "Bayi"], answer: "Gema" },
+  { question: "Setiap hari memotong rambut tapi kepalanya tak pernah botak?", options: ["Tukang cukur", "Monyet", "Siswa", "Tentara"], answer: "Tukang cukur" },
+  { question: "Benda apa yang jika di balik hurufnya malah menjadi rusak?", options: ["Kasur", "Kaca", "Pintu", "Buku"], answer: "Kasur" },
+  { question: "Kunci apa yang paling bisa membuat orang menari dan bernyanyi?", options: ["Kunci mobil", "Kunci rumah", "Kunci nada", "Kunci inggris"], answer: "Kunci nada" },
+  { question: "Pintu apa yang didorong oleh 10 orang terkuat pun tak akan terbuka?", options: ["Pintu besi", "Pintu bank", "Pintu geser", "Pintu ajaib"], answer: "Pintu geser" },
+  { question: "Apa yang selalu ada di tengah-tengah pasar?", options: ["Pedagang", "Huruf S", "Sayuran", "Uang"], answer: "Huruf S" },
+  { question: "Hewan apa yang tidak pernah lupa membawa rumahnya ke mana-mana?", options: ["Kura-kura", "Siput", "Kepiting", "Katak"], answer: "Siput" },
+  { question: "Benda apa yang kalau siang hari ia mati, kalau malam hari ia hidup?", options: ["Matahari", "Kelelawar", "Lampu jalan", "TV"], answer: "Lampu jalan" },
+  { question: "Ukurannya jauh lebih besar dari gajah, tapi sama sekali tidak berat?", options: ["Paus biru", "Bayangan gajah", "Balon gajah", "Awan"], answer: "Bayangan gajah" },
+  { question: "Apa yang bisa berlari kencang tanpa pernah memiliki kaki?", options: ["Kereta", "Mobil", "Air sungai", "Angin"], answer: "Air sungai" },
+  { question: "Tidak punya sayap namun selalu bisa terbang melesat ke telinga orang?", options: ["Burung", "Pesawat", "Berita", "Awan"], answer: "Berita" },
+  { question: "Dilempar ia hidup dan berputar, dipegang ia mati terdiam. Apakah itu?", options: ["Bola", "Gasing", "Merpati", "Layangan"], answer: "Gasing" },
+  { question: "Kera apa yang warnanya sungguh bermacam-macam?", options: ["Kerang", "Keramik", "Kertas", "Keraton"], answer: "Keramik" },
+  { question: "Mandi airnya tidak basah, dipakai menyinari tidak kotor?", options: ["Pasir", "Sinar matahari", "Baju", "Sepatu"], answer: "Sinar matahari" },
+  { question: "Semakin ia terus diisi, tubuhnya akan semakin terasa ringan?", options: ["Tas", "Balon", "Perut", "Otak"], answer: "Balon" },
+  { question: "Benda apa yang kalau ingin digunakan justru harus dibelah jadi dua dulu?", options: ["Batu", "Kertas", "Rambut", "Sumpit kayu"], answer: "Sumpit kayu" },
+  { question: "Selalu berada di depanmu, tapi kamu tak bisa melihatnya sedikitpun?", options: ["Hidung", "Kacamata", "Masa depan", "Alis"], answer: "Masa depan" },
+  { question: "Tubuhnya punya banyak lubang, namun sangat andal menahan air?", options: ["Saringan", "Jaring", "Spons", "Pipa"], answer: "Spons" }
+];
+
+// --- DATA SOAL TEKA-TEKI SILANG ---
+const ttsData = [
+  {
+    rows: 4, cols: 4,
+    words: [
+      { id: 1, dir: 'H', r: 1, c: 0, answer: 'BUKU', clue: 'Sumber ilmu (Mendatar)' },
+      { id: 2, dir: 'V', r: 0, c: 1, answer: 'GURU', clue: 'Pahlawan tanpa tanda jasa (Menurun)' }
+    ]
+  },
+  {
+    rows: 4, cols: 4,
+    words: [
+      { id: 1, dir: 'H', r: 0, c: 0, answer: 'SAPI', clue: 'Penghasil susu (Mendatar)' },
+      { id: 2, dir: 'V', r: 0, c: 0, answer: 'SUSU', clue: 'Minuman bergizi (Menurun)' },
+      { id: 3, dir: 'H', r: 2, c: 0, answer: 'SIKU', clue: 'Sendi di lengan (Mendatar)' }
+    ]
+  },
+  {
+    rows: 5, cols: 5,
+    words: [
+      { id: 1, dir: 'H', r: 1, c: 0, answer: 'MOBIL', clue: 'Kendaraan roda empat (Mendatar)' },
+      { id: 2, dir: 'V', r: 0, c: 2, answer: 'OBAT', clue: 'Diminum saat sakit (Menurun)' },
+      { id: 3, dir: 'V', r: 1, c: 4, answer: 'LARI', clue: 'Berjalan dengan cepat (Menurun)' }
+    ]
+  }
+];
+
+// --- DATA & CONFIG ONET & MAHJONG ---
+const GAME_ICONS = [
+  "🍎","🍌","🍇","🍉","🍓","🍒","🍍","🥝","🍅","🥑","🍔","🍕","🍩","🍦","🍭",
+  "🐶","🐱","🐼","🦊","🐸","🦄","🦋","🐢","🦁","🐯","🐨","🐵","🐧","🦉","🐙",
+  "🐝","🐞","🐟","🐬","🐳","🐉","🦖","🧸","🚗","🚀","⭐","🎈","🍄","🌺","🌻",
+  "🌲","⛄","🔥","🌈","⚽","🏀","🎸","🎮","🎲","💎"
+];
+
+const getOnetLevelConfig = (lvl) => {
+  let rows = 4; let cols = 4; let time = 45;
+  if (lvl >= 5) { rows = 6; cols = 4; time = 60; }
+  if (lvl >= 15) { rows = 6; cols = 6; time = 90; }
+  if (lvl >= 30) { rows = 8; cols = 6; time = 120; }
+  if (lvl >= 60) { rows = 8; cols = 8; time = 150; }
+  if (lvl >= 80) { rows = 10; cols = 8; time = 180; } 
+  let types = Math.min(4 + Math.floor(lvl / 2), GAME_ICONS.length);
+  return { rows, cols, types, time };
+};
+
+const isCellEmpty = (grid, r, c, rows, cols) => (r < 0 || r >= rows || c < 0 || c >= cols) ? true : grid[r][c] === null;
+const checkOnetLine = (grid, r1, c1, r2, c2, rows, cols) => {
+  if (r1 === r2) {
+    if (r1 < 0 || r1 >= rows) return true;
+    for (let c = Math.min(c1, c2) + 1; c < Math.max(c1, c2); c++) if (!isCellEmpty(grid, r1, c, rows, cols)) return false;
+    return true;
+  } else if (c1 === c2) {
+    if (c1 < 0 || c1 >= cols) return true;
+    for (let r = Math.min(r1, r2) + 1; r < Math.max(r1, r2); r++) if (!isCellEmpty(grid, r, c1, rows, cols)) return false;
+    return true;
+  }
+  return false;
+};
+const findOnetPath = (grid, p1, p2, rows, cols) => {
+  if (p1.r === p2.r && p1.c === p2.c) return null;
+  if (grid[p1.r][p1.c].icon !== grid[p2.r][p2.c].icon) return null;
+  if (p1.r === p2.r && checkOnetLine(grid, p1.r, p1.c, p2.r, p2.c, rows, cols)) return [p1, p2];
+  if (p1.c === p2.c && checkOnetLine(grid, p1.r, p1.c, p2.r, p2.c, rows, cols)) return [p1, p2];
+  if (isCellEmpty(grid, p1.r, p2.c, rows, cols) && checkOnetLine(grid, p1.r, p1.c, p1.r, p2.c, rows, cols) && checkOnetLine(grid, p1.r, p2.c, p2.r, p2.c, rows, cols)) return [p1, {r: p1.r, c: p2.c}, p2];
+  if (isCellEmpty(grid, p2.r, p1.c, rows, cols) && checkOnetLine(grid, p1.r, p1.c, p2.r, p1.c, rows, cols) && checkOnetLine(grid, p2.r, p1.c, p2.r, p2.c, rows, cols)) return [p1, {r: p2.r, c: p1.c}, p2];
+  for (let c = -1; c <= cols; c++) if (c !== p1.c && c !== p2.c && isCellEmpty(grid, p1.r, c, rows, cols) && isCellEmpty(grid, p2.r, c, rows, cols)) if (checkOnetLine(grid, p1.r, p1.c, p1.r, c, rows, cols) && checkOnetLine(grid, p2.r, p2.c, p2.r, c, rows, cols) && checkOnetLine(grid, p1.r, c, p2.r, c, rows, cols)) return [p1, {r: p1.r, c}, {r: p2.r, c}, p2];
+  for (let r = -1; r <= rows; r++) if (r !== p1.r && r !== p2.r && isCellEmpty(grid, r, p1.c, rows, cols) && isCellEmpty(grid, r, p2.c, rows, cols)) if (checkOnetLine(grid, p1.r, p1.c, r, p1.c, rows, cols) && checkOnetLine(grid, p2.r, p2.c, r, p2.c, rows, cols) && checkOnetLine(grid, r, p1.c, r, p2.c, rows, cols)) return [p1, {r, c: p1.c}, {r, c: p2.c}, p2];
+  return null;
+};
+const checkAvailableMoves = (grid, rows, cols) => {
+  let items = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (grid[r][c]) items.push({ r, c, icon: grid[r][c].icon });
+  for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+    const path = findOnetPath(grid, items[i], items[j], rows, cols);
+    if (path) return { p1: items[i], p2: items[j], path };
+  }
+  return null;
+};
+
+// --- MAHJONG SUSUN LOGIC ---
+const isMahjongFree = (tile, activeTiles) => {
+  const above = activeTiles.some(t => t.z > tile.z && Math.abs(t.x - tile.x) < 0.8 && Math.abs(t.y - tile.y) < 0.8);
+  if (above) return false;
+  
+  const left = activeTiles.some(t => t.z === tile.z && Math.abs(t.y - tile.y) < 0.8 && t.x < tile.x && (tile.x - t.x) < 1.2);
+  const right = activeTiles.some(t => t.z === tile.z && Math.abs(t.y - tile.y) < 0.8 && t.x > tile.x && (t.x - tile.x) < 1.2);
+  
+  return !left || !right;
+};
+
+const checkMahjongMoves = (tiles) => {
+  const active = tiles.filter(t => t.isActive);
+  if (active.length === 0) return true; 
+  const freeTiles = active.filter(t => isMahjongFree(t, active));
+  for(let i=0; i<freeTiles.length; i++){
+    for(let j=i+1; j<freeTiles.length; j++){
+      if(freeTiles[i].icon === freeTiles[j].icon) return [freeTiles[i], freeTiles[j]];
+    }
+  }
+  return null; 
+};
+
+// --- PIPA BOCOR LOGIC & CONFIG ---
+const getPipaLevelConfig = (lvl) => {
+  let rows = 4, cols = 4;
+  if (lvl >= 5) { rows = 5; cols = 4; }
+  if (lvl >= 10) { rows = 5; cols = 5; }
+  if (lvl >= 20) { rows = 6; cols = 5; }
+  if (lvl >= 40) { rows = 7; cols = 6; }
+  if (lvl >= 70) { rows = 8; cols = 6; }
+  return { rows, cols };
+};
+
+const findRandomPipaPath = (rows, cols) => {
+  let path = [];
+  let visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
+  const dirs = [[-1,0], [0,1], [1,0], [0,-1]]; // Up, Right, Down, Left
+
+  const dfs = (r, c, currentPath) => {
+    visited[r][c] = true;
+    currentPath.push({r, c});
+
+    if (r === rows - 1 && c === cols - 1) {
+      path = [...currentPath];
+      return true;
+    }
+
+    let dIdx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    for (let d of dIdx) {
+      let nr = r + dirs[d][0], nc = c + dirs[d][1];
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {
+        if (dfs(nr, nc, currentPath)) return true;
+      }
+    }
+
+    currentPath.pop();
+    visited[r][c] = false;
+    return false;
+  }
+  dfs(0, 0, []);
+  return path;
+};
+
+const checkWaterFlow = (grid, rows, cols) => {
+  let flowGrid = Array(rows).fill(0).map(()=>Array(cols).fill(false));
+  let queue = [{r: 0, c: 0}];
+  flowGrid[0][0] = true;
+  let win = false;
+
+  while(queue.length > 0) {
+    let curr = queue.shift();
+    let cell = grid[curr.r][curr.c];
+
+    if (curr.r === rows-1 && curr.c === cols-1) {
+      win = true; 
+    }
+
+    const dirs = [[-1,0], [0,1], [1,0], [0,-1]]; 
+    for (let d = 0; d < 4; d++) {
+      if (cell.conns[d]) {
+        let nr = curr.r + dirs[d][0];
+        let nc = curr.c + dirs[d][1];
+        let opposite = (d + 2) % 4;
+
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !flowGrid[nr][nc]) {
+          if (grid[nr][nc].conns[opposite]) {
+            flowGrid[nr][nc] = true;
+            queue.push({r: nr, c: nc});
+          }
+        }
+      }
+    }
+  }
+  return { flowGrid, win };
+};
+
+// --- KOMPONEN SVG PIPA BOCOR 3D & ANIMASI AIR ---
+const PipeSVG = ({ conns, isFlowing, isStart, isEnd }) => {
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: 'drop-shadow(2px 4px 5px rgba(0,0,0,0.4))', overflow: 'visible' }}>
+      <defs>
+        {/* Gradien untuk memberi efek 3D silinder pada pipa */}
+        <linearGradient id="pipeVert" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#334155" />
+          <stop offset="25%" stopColor="#94a3b8" />
+          <stop offset="50%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#1e293b" />
+        </linearGradient>
+        <linearGradient id="pipeHorz" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#334155" />
+          <stop offset="25%" stopColor="#94a3b8" />
+          <stop offset="50%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#1e293b" />
+        </linearGradient>
+        {/* Gradien melingkar untuk sambungan tengah */}
+        <radialGradient id="jointGrad" cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#cbd5e1" />
+          <stop offset="50%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#1e293b" />
+        </radialGradient>
+        {/* Warna air menyala */}
+        <linearGradient id="waterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="50%" stopColor="#0ea5e9" />
+          <stop offset="100%" stopColor="#0284c7" />
+        </linearGradient>
+        {/* Efek Glow / Neon pada air */}
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <style>
+          {`
+            @keyframes water-flow {
+              from { stroke-dashoffset: 20; }
+              to { stroke-dashoffset: 0; }
+            }
+            .flow-line {
+              stroke-dasharray: 8 12;
+              animation: water-flow 0.4s linear infinite;
+            }
+          `}
+        </style>
+      </defs>
+
+      {/* 1. CANGKANG PIPA LUAR (3D) */}
+      {conns[0] === 1 && <rect x="28" y="0" width="44" height="50" fill="url(#pipeVert)" />}
+      {conns[1] === 1 && <rect x="50" y="28" width="50" height="44" fill="url(#pipeHorz)" />}
+      {conns[2] === 1 && <rect x="28" y="50" width="44" height="50" fill="url(#pipeVert)" />}
+      {conns[3] === 1 && <rect x="0" y="28" width="50" height="44" fill="url(#pipeHorz)" />}
+      
+      {/* Sambungan Pusat */}
+      {(conns.includes(1)) && <circle cx="50" cy="50" r="26" fill="url(#jointGrad)" />}
+
+      {/* 2. LUBANG PIPA DALAM (KOSONG / GELAP) */}
+      {conns[0] === 1 && <rect x="36" y="0" width="28" height="50" fill="#0f172a" />}
+      {conns[1] === 1 && <rect x="50" y="36" width="50" height="28" fill="#0f172a" />}
+      {conns[2] === 1 && <rect x="36" y="50" width="28" height="50" fill="#0f172a" />}
+      {conns[3] === 1 && <rect x="0" y="36" width="50" height="28" fill="#0f172a" />}
+      {(conns.includes(1)) && <circle cx="50" cy="50" r="14" fill="#0f172a" />}
+
+      {/* 3. AIR YANG MENGALIR (WATER FLOW) */}
+      {isFlowing && (
+        <g filter="url(#glow)">
+          {conns[0] === 1 && <rect x="38" y="0" width="24" height="50" fill="url(#waterGrad)" />}
+          {conns[1] === 1 && <rect x="50" y="38" width="50" height="24" fill="url(#waterGrad)" />}
+          {conns[2] === 1 && <rect x="38" y="50" width="24" height="50" fill="url(#waterGrad)" />}
+          {conns[3] === 1 && <rect x="0" y="38" width="50" height="24" fill="url(#waterGrad)" />}
+          <circle cx="50" cy="50" r="14" fill="url(#waterGrad)" />
+          
+          {/* Animasi Garis Arus / Gelembung Air */}
+          {conns[0] === 1 && <line x1="50" y1="50" x2="50" y2="0" stroke="#bae6fd" strokeWidth="4" strokeLinecap="round" className="flow-line" />}
+          {conns[1] === 1 && <line x1="50" y1="50" x2="100" y2="50" stroke="#bae6fd" strokeWidth="4" strokeLinecap="round" className="flow-line" />}
+          {conns[2] === 1 && <line x1="50" y1="50" x2="50" y2="100" stroke="#bae6fd" strokeWidth="4" strokeLinecap="round" className="flow-line" />}
+          {conns[3] === 1 && <line x1="50" y1="50" x2="0" y2="50" stroke="#bae6fd" strokeWidth="4" strokeLinecap="round" className="flow-line" />}
+        </g>
+      )}
+
+      {/* 4. FLANGE / CINCIN SAMBUNGAN (Detail 3D di pinggir) */}
+      {conns[0] === 1 && <rect x="24" y="0" width="52" height="6" fill="#94a3b8" rx="3" />}
+      {conns[1] === 1 && <rect x="94" y="24" width="6" height="52" fill="#94a3b8" rx="3" />}
+      {conns[2] === 1 && <rect x="24" y="94" width="52" height="6" fill="#94a3b8" rx="3" />}
+      {conns[3] === 1 && <rect x="0" y="24" width="6" height="52" fill="#94a3b8" rx="3" />}
+
+      {/* 5. INDIKATOR TITIK AWAL & AKHIR */}
+      {isStart && <circle cx="50" cy="50" r="16" fill="#facc15" filter="url(#glow)" className="animate-pulse" />}
+      {isEnd && <circle cx="50" cy="50" r="16" fill="#4ade80" filter="url(#glow)" className="animate-pulse" />}
+    </svg>
+  );
+};
+
+// Array Utils
+const shuffleArray = (array) => {
+  let shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Objek konteks audio global
+let audioCtx = null;
+
+// --- EFEK SUARA (SFX) ---
+const playSound = (type) => {
+  try {
+    if (!window.AudioContext && !window.webkitAudioContext) return;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const ctx = audioCtx;
+
+    if (type === 'click') {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(600, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } else if (type === 'success') {
+      [440, 554.37, 659.25, 880].forEach((freq, i) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'triangle'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05 + (i * 0.1)); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3 + (i * 0.1));
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + (i * 0.1)); osc.stop(ctx.currentTime + 0.4 + (i * 0.1));
+      });
+    } else if (type === 'error') {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.2);
+    }
+  } catch (e) { console.error("SFX failed", e); }
+};
+
+// --- MUSIK LATAR FUN / LUCU (13 TRACKS) ---
+const N = { C4: 261.6, C4s: 277.2, D4: 293.7, D4s: 311.1, E4: 329.6, F4: 349.2, F4s: 370.0, G4: 392.0, G4s: 415.3, A4: 440.0, A4s: 466.2, B4: 493.9, C5: 523.3, C5s: 554.4, D5: 587.3, D5s: 622.3, E5: 659.3, F5: 698.5, F5s: 740.0, G5: 784.0, G5s: 830.6, A5: 880.0, A5s: 932.3, B5: 987.8, R: 0 };
+
+const BGM_TRACKS = [
+  { speed: 0.2, type: 'triangle', notes: [ N.C4, N.E4, N.G4, N.C5, N.G4, N.E4, N.A4, N.C4, N.E4, N.A4, N.E4, N.C4, N.F4, N.A4, N.C4, N.F4, N.C4, N.A4, N.G4, N.B4, N.D4, N.G4, N.D4, N.B4 ] },
+  { speed: 0.15, type: 'square', notes: [ N.C4, N.E4, N.G4, N.E4, N.C5, N.G4, N.E4, N.G4, N.F4, N.A4, N.C5, N.A4, N.F5, N.C5, N.A4, N.C5, N.G4, N.B4, N.D5, N.B4, N.G5, N.D5, N.B4, N.D5, N.C5, N.G4, N.E4, N.G4, N.C4, N.E4, N.G4, N.C5 ] },
+  { speed: 0.25, type: 'triangle', notes: [ N.E4, N.R,  N.G4, N.R,  N.C5, N.B4, N.A4, N.G4, N.F4, N.R,  N.A4, N.R,  N.D5, N.C5, N.B4, N.A4, N.G4, N.R,  N.B4, N.R,  N.E5, N.D5, N.C5, N.B4, N.C5, N.G4, N.E4, N.G4, N.C4, N.R,  N.R,  N.R ] },
+  { speed: 0.12, type: 'square', notes: [ N.C5, N.G4, N.C5, N.G4, N.E5, N.C5, N.E5, N.C5, N.F5, N.C5, N.F5, N.C5, N.A5, N.F5, N.A5, N.F5, N.G5, N.D5, N.G5, N.D5, N.B5, N.G5, N.B5, N.G5, N.C5, N.G4, N.E4, N.C4, N.R,  N.R,  N.R,  N.R ] },
+  { speed: 0.3, type: 'triangle', notes: [ N.C4, N.E4, N.A4, N.R, N.C4, N.E4, N.A4, N.R, N.D4, N.F4, N.A4, N.R, N.C4, N.E4, N.G4, N.R ] },
+  { speed: 0.18, type: 'square', notes: [ N.C4, N.C4s, N.D4, N.D4s, N.E4, N.D4s, N.D4, N.C4s, N.C4, N.R, N.E4, N.R, N.G4, N.R, N.E4, N.R ] },
+  { speed: 0.2, type: 'triangle', notes: [ N.C4, N.G4, N.E4, N.C5, N.G4, N.E5, N.C5, N.G5, N.C5, N.G5, N.E5, N.C5, N.G4, N.C5, N.E4, N.G4 ] },
+  { speed: 0.16, type: 'square', notes: [ N.C5, N.R, N.C5, N.R, N.G4, N.R, N.G4, N.R, N.E4, N.R, N.E4, N.R, N.C4, N.R, N.C4, N.R ] },
+  { speed: 0.22, type: 'triangle', notes: [ N.E4, N.C4, N.D4, N.E4, N.F4, N.D4, N.E4, N.F4, N.G4, N.E4, N.F4, N.G4, N.A4, N.F4, N.G4, N.A4 ] },
+  { speed: 0.1, type: 'square', notes: [ N.A4, N.B4, N.C5, N.B4, N.A4, N.G4, N.A4, N.E4, N.F4, N.G4, N.A4, N.G4, N.F4, N.E4, N.D4, N.E4 ] },
+  { speed: 0.25, type: 'triangle', notes: [ N.F4, N.A4, N.C5, N.F5, N.E5, N.C5, N.A4, N.F4, N.G4, N.B4, N.D5, N.G5, N.F5, N.D5, N.B4, N.G4 ] },
+  { speed: 0.14, type: 'square', notes: [ N.G4, N.G4, N.A4, N.A4, N.B4, N.B4, N.C5, N.C5, N.D5, N.D5, N.E5, N.E5, N.F5, N.F5, N.G5, N.G5 ] },
+  { speed: 0.35, type: 'triangle', notes: [ N.C5, N.G4, N.E4, N.C4, N.R, N.R, N.C5, N.R, N.A4, N.F4, N.D4, N.C4, N.R, N.R, N.C5, N.R ] },
+];
+
+let isBgmPlaying = false; let bgmNextNoteTime = 0; let bgmNoteIdx = 0; let bgmGainNode = null; let bgmTimeoutId = null; let currentTrackIdx = 0;
+
+const changeBgmTrack = () => {
+  let newIdx;
+  do { newIdx = Math.floor(Math.random() * BGM_TRACKS.length); } while (newIdx === currentTrackIdx && BGM_TRACKS.length > 1);
+  currentTrackIdx = newIdx; bgmNoteIdx = 0;
+  if (audioCtx && isBgmPlaying) bgmNextNoteTime = audioCtx.currentTime + 0.1;
+};
+
+const scheduleBGM = () => {
+  if (!isBgmPlaying || !audioCtx) return;
+  const track = BGM_TRACKS[currentTrackIdx];
+  while (bgmNextNoteTime < audioCtx.currentTime + 0.1) {
+    const freq = track.notes[bgmNoteIdx];
+    if (freq > 0) {
+      const osc = audioCtx.createOscillator(); const env = audioCtx.createGain();
+      osc.type = track.type; osc.frequency.value = freq;
+      const maxVolume = track.type === 'square' ? 0.02 : 0.04; 
+      env.gain.setValueAtTime(0, bgmNextNoteTime);
+      env.gain.linearRampToValueAtTime(maxVolume, bgmNextNoteTime + (track.speed * 0.2));
+      env.gain.linearRampToValueAtTime(0, bgmNextNoteTime + (track.speed * 0.9));
+      osc.connect(env); env.connect(bgmGainNode);
+      osc.start(bgmNextNoteTime); osc.stop(bgmNextNoteTime + track.speed);
+    }
+    bgmNextNoteTime += track.speed; 
+    bgmNoteIdx = (bgmNoteIdx + 1) % track.notes.length;
+  }
+  bgmTimeoutId = setTimeout(scheduleBGM, 50);
+};
+
+const startBGM = () => {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (isBgmPlaying) return;
+  isBgmPlaying = true;
+  bgmGainNode = audioCtx.createGain(); bgmGainNode.gain.value = 1.0; bgmGainNode.connect(audioCtx.destination);
+  bgmNextNoteTime = audioCtx.currentTime + 0.1; bgmNoteIdx = 0; scheduleBGM();
+};
+
+const stopBGM = () => {
+  isBgmPlaying = false; clearTimeout(bgmTimeoutId);
+  if (bgmGainNode && audioCtx) {
+    bgmGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    setTimeout(() => { if(bgmGainNode) bgmGainNode.disconnect(); bgmGainNode = null; }, 500);
+  }
+};
+
+// --- TEMA APLIKASI (THEMES) ---
+const APP_THEMES = [
+  {
+    name: "Classic Retro",
+    bgs: ['from-violet-600 via-fuchsia-600 to-orange-500', 'from-cyan-500 via-blue-500 to-purple-600', 'from-emerald-400 via-teal-500 to-cyan-600', 'from-rose-500 via-pink-500 to-purple-500'],
+    card: "bg-white/20 hover:bg-white/30 border-white/30"
+  },
+  {
+    name: "Dark Neon",
+    bgs: ['from-gray-900 via-purple-900 to-black', 'from-slate-900 via-blue-900 to-black', 'from-zinc-900 via-fuchsia-900 to-black', 'from-black via-indigo-950 to-purple-900'],
+    card: "bg-black/60 hover:bg-black/40 border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.3)]"
+  },
+  {
+    name: "Ocean Chill",
+    bgs: ['from-cyan-700 via-blue-600 to-teal-500', 'from-sky-600 via-cyan-500 to-blue-700', 'from-teal-600 via-emerald-500 to-cyan-600', 'from-blue-600 via-indigo-500 to-cyan-500'],
+    card: "bg-white/10 hover:bg-white/20 border-cyan-200/40"
+  },
+  {
+    name: "Forest Magic",
+    bgs: ['from-green-700 via-emerald-600 to-teal-800', 'from-lime-600 via-green-500 to-emerald-700', 'from-teal-700 via-green-600 to-lime-600', 'from-emerald-800 via-teal-700 to-green-600'],
+    card: "bg-black/30 hover:bg-black/40 border-green-300/40"
+  }
+];
+
+const AnimatedBackground = ({ bgIndex, appThemeIndex = 0 }) => {
+  const bgs = APP_THEMES[appThemeIndex].bgs;
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      {bgs.map((bg, i) => (
+        <div key={i} className={`absolute inset-0 bg-gradient-to-br ${bg} transition-opacity duration-1000 ease-in-out ${(i === bgIndex % bgs.length) ? 'opacity-100' : 'opacity-0'}`} />
+      ))}
+      <div className="absolute top-10 left-10 text-white/30 animate-bounce" style={{ animationDuration: '3s' }}><Star size={80} /></div>
+      <div className="absolute top-1/4 right-10 text-white/30 animate-pulse" style={{ animationDuration: '4s' }}><Sparkles size={60} /></div>
+      <div className="absolute bottom-20 left-1/4 text-white/20" style={{ animation: 'spin 10s linear infinite' }}><Brain size={120} /></div>
+      <div className="absolute bottom-10 right-1/4 text-white/30 animate-bounce" style={{ animationDuration: '5s' }}><Music size={70} /></div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [gameState, setGameState] = useState('menu'); 
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [gameOverReason, setGameOverReason] = useState('completed'); 
+  const [score, setScore] = useState(0);
+  const [hints, setHints] = useState(10); 
+  const [feedback, setFeedback] = useState(null); 
+  const [isMusicOn, setIsMusicOn] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false); 
+  const [bgIndex, setBgIndex] = useState(0);
+  const [appTheme, setAppTheme] = useState(0);
+
+  // States: Masing-masing Game
+  const [activeSusunKataData, setActiveSusunKataData] = useState([...susunKataData]);
+  const [activeAsahOtakData, setActiveAsahOtakData] = useState([...asahOtakData]);
+  const [activeTtsData, setActiveTtsData] = useState([...ttsData]);
+  const [availableLetters, setAvailableLetters] = useState([]);
+  const [placedLetters, setPlacedLetters] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [eliminatedOptions, setEliminatedOptions] = useState([]);
+  const [ttsGrid, setTtsGrid] = useState([]);
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [onetGrid, setOnetGrid] = useState([]);
+  const [onetSelected, setOnetSelected] = useState(null);
+  const [onetPath, setOnetPath] = useState(null);
+  const [onetHintPair, setOnetHintPair] = useState(null);
+  
+  // States: Mahjong
+  const [mahjongTiles, setMahjongTiles] = useState([]);
+  const [mahjongSelected, setMahjongSelected] = useState(null);
+  const [mahjongHintPair, setMahjongHintPair] = useState(null);
+
+  // States: Pipa Bocor
+  const [pipaGrid, setPipaGrid] = useState([]);
+  const [pipaFlow, setPipaFlow] = useState([]);
+
+  const toggleMusic = () => {
+    playSound('click');
+    if (isMusicOn) { stopBGM(); setIsMusicOn(false); } 
+    else { startBGM(); setIsMusicOn(true); }
+  };
+
+  useEffect(() => {
+    if (!isTimerRunning || feedback === 'correct' || isPaused) return;
+    const timerId = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerId); playSound('error'); setGameOverReason('timeout'); setIsTimerRunning(false); setGameState('game-over'); return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerId);
+  }, [isTimerRunning, feedback, isPaused]);
+
+  const handleLevelComplete = (nextLevelFn) => {
+    playSound('success'); setFeedback('correct'); setScore(s => s + 10); setHints(h => h + 3); 
+    setTimeout(() => nextLevelFn(currentLevel + 1), 1500);
+  };
+
+  // === INISIALISASI GAME ===
+  const startSusunKata = (level = 0) => {
+    let currentDataList = activeSusunKataData;
+    if (level === 0) {
+      currentDataList = shuffleArray([...susunKataData]);
+      setActiveSusunKataData(currentDataList);
+      setScore(0);
+    }
+    if (level >= currentDataList.length) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    
+    const currentData = currentDataList[level];
+    const letters = currentData.word.split('').map((char, index) => ({ id: index, char }));
+    setAvailableLetters(shuffleArray(letters)); setPlacedLetters(new Array(letters.length).fill(null)); setCurrentLevel(level); setFeedback(null);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(45); setIsTimerRunning(true); setGameState('susun-kata');
+  };
+
+  const startAsahOtak = (level = 0) => {
+    let currentDataList = activeAsahOtakData;
+    if (level === 0) {
+      currentDataList = shuffleArray([...asahOtakData]);
+      setActiveAsahOtakData(currentDataList);
+      setScore(0);
+    }
+    if (level >= currentDataList.length) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    
+    setCurrentLevel(level); setSelectedOption(null); setEliminatedOptions([]); setFeedback(null);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(30); setIsTimerRunning(true); setGameState('asah-otak');
+  };
+
+  const startTTS = (level = 0) => {
+    let currentDataList = activeTtsData;
+    if (level === 0) {
+      currentDataList = shuffleArray([...ttsData]);
+      setActiveTtsData(currentDataList);
+      setScore(0);
+    }
+    if (level >= currentDataList.length) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    
+    const data = currentDataList[level];
+    let grid = Array.from({ length: data.rows }, () => Array.from({ length: data.cols }, () => ({ isActive: false, expected: '', value: '', number: null })));
+    data.words.forEach(w => {
+      let r = w.r, c = w.c; grid[r][c].number = w.id; 
+      for(let i = 0; i < w.answer.length; i++) { grid[r][c].isActive = true; grid[r][c].expected = w.answer[i]; if (w.dir === 'H') c++; else r++; }
+    });
+    setTtsGrid(grid); setSelectedCell({ r: data.words[0].r, c: data.words[0].c, dir: data.words[0].dir }); setCurrentLevel(level); setFeedback(null);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(120); setIsTimerRunning(true); setGameState('tts');
+  };
+
+  const startOnet = (level = 0) => {
+    if (level >= 100) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    const { rows, cols, types, time } = getOnetLevelConfig(level);
+    const totalPairs = (rows * cols) / 2;
+    let items = [];
+    for (let i = 0; i < totalPairs; i++) { const icon = GAME_ICONS[i % types]; items.push({ id: i * 2, icon }, { id: i * 2 + 1, icon }); }
+    items = shuffleArray(items);
+    let grid = []; let itemIdx = 0;
+    for (let r = 0; r < rows; r++) { let row = []; for (let c = 0; c < cols; c++) row.push(items[itemIdx++]); grid.push(row); }
+
+    let safeGrid = grid; let moves = checkAvailableMoves(safeGrid, rows, cols);
+    while (!moves && items.length > 0) {
+      items = shuffleArray(items); safeGrid = []; itemIdx = 0;
+      for (let r = 0; r < rows; r++) { let row = []; for (let c = 0; c < cols; c++) row.push(items[itemIdx++]); safeGrid.push(row); }
+      moves = checkAvailableMoves(safeGrid, rows, cols);
+    }
+    setOnetGrid(safeGrid); setOnetSelected(null); setOnetPath(null); setOnetHintPair(null); setCurrentLevel(level); setFeedback(null);
+    if (level === 0) setScore(0);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(time); setIsTimerRunning(true); setGameState('onet');
+  };
+
+  const startMahjong = (level = 0) => {
+    if (level >= 150) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    
+    const maxPairs = Math.min(72, 4 + Math.floor(level / 2)); 
+    const timeLimit = 60 + Math.floor(level * 1.6); 
+
+    const layerDefs = [
+      { w: 10, h: 6, offX: 1, offY: 1 },
+      { w: 9,  h: 5, offX: 1.5, offY: 1.5 },
+      { w: 8,  h: 4, offX: 2, offY: 2 },
+      { w: 5,  h: 3, offX: 3.5, offY: 2.5 },
+      { w: 2,  h: 2, offX: 5, offY: 3 }
+    ];
+
+    let allPos = [];
+    for (let z = 0; z < layerDefs.length; z++) {
+      const dim = layerDefs[z];
+      for (let y = 0; y < dim.h; y++) {
+        for (let x = 0; x < dim.w; x++) {
+          allPos.push({ x: x + dim.offX, y: y + dim.offY, z });
+        }
+      }
+    }
+
+    let selectedPos = [];
+    const target = maxPairs * 2;
+    
+    const hasSupports = (p) => {
+      if (p.z === 0) return true;
+      const bases = [
+        {x: p.x - 0.5, y: p.y - 0.5, z: p.z - 1},
+        {x: p.x + 0.5, y: p.y - 0.5, z: p.z - 1},
+        {x: p.x - 0.5, y: p.y + 0.5, z: p.z - 1},
+        {x: p.x + 0.5, y: p.y + 0.5, z: p.z - 1}
+      ];
+      return bases.every(b => selectedPos.some(sp => sp.x === b.x && sp.y === b.y && sp.z === b.z));
+    };
+
+    while (selectedPos.length < target && allPos.length > 0) {
+      let candidates = allPos.filter(p => hasSupports(p));
+      if (candidates.length === 0) break;
+      
+      candidates.sort((a, b) => {
+        if (b.z !== a.z) return b.z - a.z;
+        const distA = Math.abs(a.x - 5.5) + Math.abs(a.y - 3.5);
+        const distB = Math.abs(b.x - 5.5) + Math.abs(b.y - 3.5);
+        if (distA !== distB) return distA - distB;
+        if (a.y !== b.y) return a.y - b.y;
+        return a.x - b.x;
+      });
+      
+      const pick = candidates[0];
+      selectedPos.push(pick);
+      allPos = allPos.filter(p => !(p.x === pick.x && p.y === pick.y && p.z === pick.z));
+    }
+
+    if (selectedPos.length % 2 !== 0) selectedPos.pop();
+
+    const totalPairs = selectedPos.length / 2;
+    let items = [];
+    for (let i = 0; i < totalPairs; i++) {
+      const icon = GAME_ICONS[i % GAME_ICONS.length];
+      items.push(icon, icon);
+    }
+    items = shuffleArray(items);
+
+    let tiles = selectedPos.map((pos, idx) => ({
+      id: idx, x: pos.x, y: pos.y, z: pos.z, icon: items[idx], isActive: true
+    }));
+
+    let moves = checkMahjongMoves(tiles);
+    let deadlockAttempts = 0;
+    while (!moves && deadlockAttempts < 100) {
+      items = shuffleArray(items);
+      tiles = tiles.map((t, idx) => ({ ...t, icon: items[idx] }));
+      moves = checkMahjongMoves(tiles);
+      deadlockAttempts++;
+    }
+
+    if (!moves) {
+      const freeTiles = tiles.filter(t => t.isActive && isMahjongFree(t, tiles));
+      if (freeTiles.length >= 2) {
+        const t1 = freeTiles[0];
+        const t2 = freeTiles[1];
+        if (t1.icon !== t2.icon) {
+          const pairOfT1 = tiles.find(t => t.id !== t1.id && t.icon === t1.icon);
+          if (pairOfT1) {
+            tiles = tiles.map(t => {
+              if (t.id === t2.id) return { ...t, icon: t1.icon };
+              if (t.id === pairOfT1.id) return { ...t, icon: t2.icon };
+              return t;
+            });
+          }
+        }
+      }
+    }
+
+    setMahjongTiles(tiles); setMahjongSelected(null); setMahjongHintPair(null);
+    setCurrentLevel(level); setFeedback(null);
+    if (level === 0) setScore(0);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(timeLimit); setIsTimerRunning(true); setGameState('mahjong');
+  };
+
+  const startPipa = (level = 0) => {
+    if (level >= 100) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+    
+    const { rows, cols } = getPipaLevelConfig(level);
+    let path = findRandomPipaPath(rows, cols);
+    
+    let grid = Array(rows).fill(0).map((_, r) =>
+      Array(cols).fill(0).map((_, c) => ({
+        r, c, conns: [0, 0, 0, 0], targetConns: [0, 0, 0, 0]
+      }))
+    );
+
+    // Mengukir jalur solusi ke dalam Pipa
+    for (let i = 0; i < path.length; i++) {
+      let curr = path[i];
+      if (i > 0) {
+        let prev = path[i-1];
+        if (prev.r < curr.r) grid[curr.r][curr.c].conns[0] = 1;
+        else if (prev.r > curr.r) grid[curr.r][curr.c].conns[2] = 1;
+        else if (prev.c < curr.c) grid[curr.r][curr.c].conns[3] = 1;
+        else if (prev.c > curr.c) grid[curr.r][curr.c].conns[1] = 1;
+      }
+      if (i < path.length - 1) {
+        let next = path[i+1];
+        if (next.r < curr.r) grid[curr.r][curr.c].conns[0] = 1;
+        else if (next.r > curr.r) grid[curr.r][curr.c].conns[2] = 1;
+        else if (next.c < curr.c) grid[curr.r][curr.c].conns[3] = 1;
+        else if (next.c > curr.c) grid[curr.r][curr.c].conns[1] = 1;
+      }
+    }
+
+    // Mengisi ruang kosong dengan pipa acak & Mengacak rotasi
+    const randomPipes = [[1,0,1,0], [1,1,0,0], [1,1,1,0], [1,1,1,1], [0,1,0,1], [0,1,1,0]];
+    for (let r=0; r<rows; r++) {
+      for (let c=0; c<cols; c++) {
+        if (grid[r][c].conns.every(x => x === 0)) {
+          grid[r][c].conns = [...randomPipes[Math.floor(Math.random() * randomPipes.length)]];
+        }
+        grid[r][c].targetConns = [...grid[r][c].conns]; // Simpan bentuk asli untuk sistem bantuan (Hint)
+        
+        let rots = Math.floor(Math.random() * 4);
+        for (let k=0; k<rots; k++) {
+          grid[r][c].conns = [grid[r][c].conns[3], grid[r][c].conns[0], grid[r][c].conns[1], grid[r][c].conns[2]];
+        }
+      }
+    }
+
+    setPipaGrid(grid);
+    const { flowGrid } = checkWaterFlow(grid, rows, cols);
+    setPipaFlow(flowGrid);
+    setCurrentLevel(level);
+    setFeedback(null);
+    if (level === 0) setScore(0);
+    setIsPaused(false); changeBgmTrack(); setTimeLeft(45 + level * 10); setIsTimerRunning(true); setGameState('pipa');
+  };
+
+  // --- EVENT HANDLER SEMUA GAME ---
+  const clickAvailableLetter = (item) => { if (isPaused) return; playSound('click'); const firstEmpty = placedLetters.findIndex(x => x === null); if (firstEmpty !== -1 && !feedback) { const newPlaced = [...placedLetters]; newPlaced[firstEmpty] = item; setPlacedLetters(newPlaced); setAvailableLetters(availableLetters.filter(x => x.id !== item.id)); } };
+  const clickPlacedLetter = (index) => { if (isPaused) return; playSound('click'); const item = placedLetters[index]; if (item && !feedback) { const newPlaced = [...placedLetters]; newPlaced[index] = null; setPlacedLetters(newPlaced); setAvailableLetters([...availableLetters, item]); } };
+  useEffect(() => {
+    if (gameState === 'susun-kata' && placedLetters.length > 0 && !placedLetters.includes(null) && feedback !== 'correct') {
+      const word = placedLetters.map(x => x.char).join('');
+      if (word === activeSusunKataData[currentLevel].word) handleLevelComplete(startSusunKata);
+      else { playSound('error'); setFeedback('wrong'); setTimeout(() => { if (feedback !== 'correct') setFeedback(null) }, 1000); }
+    }
+  }, [placedLetters]);
+  
+  const useHintSusunKata = () => {
+    if (hints < 2 || feedback || isPaused) return; playSound('click'); const targetWord = activeSusunKataData[currentLevel].word;
+    let targetIndex = placedLetters.findIndex((p, i) => !p || p.char !== targetWord[i]);
+    if (targetIndex !== -1) {
+      setHints(h => h - 2); const correctChar = targetWord[targetIndex]; let itemToMove = availableLetters.find(x => x.char === correctChar); let newAvailable = [...availableLetters]; let newPlaced = [...placedLetters];
+      if (itemToMove) newAvailable = newAvailable.filter(x => x.id !== itemToMove.id);
+      else { const wrongPlacedIdx = newPlaced.findLastIndex((x, idx) => x && x.char === correctChar && idx > targetIndex); if (wrongPlacedIdx !== -1) { itemToMove = newPlaced[wrongPlacedIdx]; newPlaced[wrongPlacedIdx] = null; } }
+      if (newPlaced[targetIndex]) newAvailable.push(newPlaced[targetIndex]); newPlaced[targetIndex] = itemToMove; setAvailableLetters(newAvailable); setPlacedLetters(newPlaced);
+    }
+  };
+
+  const handleAsahOtakSubmit = (option) => {
+    if (feedback !== null || isPaused) return; playSound('click'); setSelectedOption(option);
+    if (option === activeAsahOtakData[currentLevel].answer) handleLevelComplete(startAsahOtak);
+    else { playSound('error'); setFeedback('wrong'); setTimeout(() => { if (feedback !== 'correct') setFeedback(null) }, 1500); }
+  };
+  const useHintAsahOtak = () => {
+    if (hints < 2 || feedback || isPaused) return; playSound('click');
+    const currentData = activeAsahOtakData[currentLevel]; const wrongOptions = currentData.options.filter(o => o !== currentData.answer && !eliminatedOptions.includes(o));
+    if (wrongOptions.length > 0) { setHints(h => h - 2); setEliminatedOptions(prev => [...prev, wrongOptions[0]]); }
+  };
+
+  const handleTTSCellClick = (r, c) => {
+    if (!ttsGrid[r][c].isActive || feedback || isPaused) return; playSound('click');
+    if (selectedCell?.r === r && selectedCell?.c === c) setSelectedCell({ r, c, dir: selectedCell.dir === 'H' ? 'V' : 'H' });
+    else setSelectedCell({ r, c, dir: 'H' });
+  };
+  const handleTTSKeyPress = (key) => {
+    if (!selectedCell || feedback || isPaused) return; playSound('click'); const { r, c, dir } = selectedCell; const newGrid = [...ttsGrid];
+    if (key === 'DEL') { newGrid[r][c].value = ''; setTtsGrid(newGrid); return; }
+    newGrid[r][c].value = key; setTtsGrid(newGrid);
+    let isWin = true; for(let i=0; i<newGrid.length; i++) for(let j=0; j<newGrid[i].length; j++) if(newGrid[i][j].isActive && newGrid[i][j].value !== newGrid[i][j].expected) isWin = false;
+    if (isWin) handleLevelComplete(startTTS);
+    else { let nr = r, nc = c; if (dir === 'H') nc++; else nr++; if (nr < newGrid.length && nc < newGrid[0].length && newGrid[nr][nc].isActive) setSelectedCell({ r: nr, c: nc, dir }); }
+  };
+  const useHintTTS = () => { if (hints < 2 || !selectedCell || feedback || isPaused) return; playSound('click'); setHints(h => h - 2); handleTTSKeyPress(ttsGrid[selectedCell.r][selectedCell.c].expected); };
+
+  const handleOnetClick = (r, c) => {
+    if (!onetGrid[r][c] || onetPath || isPaused) return; playSound('click');
+    if (!onetSelected) { setOnetSelected({ r, c }); return; }
+    if (onetSelected.r === r && onetSelected.c === c) { setOnetSelected(null); return; }
+    const { rows, cols } = getOnetLevelConfig(currentLevel);
+    const path = findOnetPath(onetGrid, onetSelected, { r, c }, rows, cols);
+    if (path) {
+      setOnetPath(path); playSound('success'); setOnetHintPair(null);
+      setTimeout(() => {
+        const newGrid = [...onetGrid.map(row => [...row])]; newGrid[onetSelected.r][onetSelected.c] = null; newGrid[r][c] = null; setOnetPath(null); setOnetSelected(null);
+        let isEmpty = true; for (let ir = 0; ir < rows; ir++) for (let ic = 0; ic < cols; ic++) if (newGrid[ir][ic]) isEmpty = false;
+        if (isEmpty) handleLevelComplete(startOnet);
+        else {
+          let finalGrid = newGrid; let moves = checkAvailableMoves(finalGrid, rows, cols); let attempts = 0;
+          while (!moves && attempts < 10) {
+            let flat = []; for(let rowR=0; rowR<rows; rowR++) for(let colC=0; colC<cols; colC++) if(finalGrid[rowR][colC]) flat.push(finalGrid[rowR][colC]);
+            flat = shuffleArray(flat); finalGrid = [...finalGrid.map(row => [...row])]; let idx = 0;
+            for(let rowR=0; rowR<rows; rowR++) for(let colC=0; colC<cols; colC++) if(finalGrid[rowR][colC]) finalGrid[rowR][colC] = flat[idx++];
+            moves = checkAvailableMoves(finalGrid, rows, cols); attempts++;
+          }
+          setOnetGrid(finalGrid);
+        }
+      }, 300); 
+    } else { playSound('error'); setOnetSelected({ r, c }); }
+  };
+  const useHintOnet = () => {
+    if (hints < 2 || onetPath || onetHintPair || isPaused) return; const { rows, cols } = getOnetLevelConfig(currentLevel); const moves = checkAvailableMoves(onetGrid, rows, cols);
+    if (moves) { playSound('click'); setHints(h => h - 2); setOnetHintPair([moves.p1, moves.p2]); setTimeout(() => setOnetHintPair(null), 2000); }
+  };
+
+  const handleMahjongClick = (tile) => {
+    if (isPaused) return;
+    const active = mahjongTiles.filter(t => t.isActive);
+    if (!isMahjongFree(tile, active)) { playSound('error'); return; }
+    playSound('click');
+
+    if (!mahjongSelected) {
+      setMahjongSelected(tile);
+    } else if (mahjongSelected.id === tile.id) {
+      setMahjongSelected(null); 
+    } else if (mahjongSelected.icon === tile.icon) {
+      playSound('success');
+      setMahjongHintPair(null);
+      
+      const newTiles = mahjongTiles.map(t => {
+        if (t.id === tile.id || t.id === mahjongSelected.id) return { ...t, isActive: false };
+        return t;
+      });
+      setMahjongTiles(newTiles);
+      setMahjongSelected(null);
+
+      let moves = checkMahjongMoves(newTiles);
+      if (moves === true) {
+        handleLevelComplete(startMahjong); 
+      } else if (!moves) {
+        let finalTiles = [...newTiles];
+        let attempts = 0;
+        while(!moves && attempts < 100) {
+          const activeRemain = finalTiles.filter(t => t.isActive);
+          let icons = shuffleArray(activeRemain.map(t => t.icon));
+          let i = 0;
+          finalTiles = finalTiles.map(t => t.isActive ? { ...t, icon: icons[i++] } : t);
+          moves = checkMahjongMoves(finalTiles);
+          attempts++;
+        }
+        if (!moves) {
+          const freeTiles = finalTiles.filter(t => t.isActive && isMahjongFree(t, finalTiles));
+          if (freeTiles.length >= 2) {
+            const t1 = freeTiles[0];
+            const t2 = freeTiles[1];
+            if (t1.icon !== t2.icon) {
+              const pairOfT1 = finalTiles.find(t => t.isActive && t.id !== t1.id && t.icon === t1.icon);
+              if (pairOfT1) {
+                finalTiles = finalTiles.map(t => {
+                  if (t.id === t2.id) return { ...t, icon: t1.icon };
+                  if (t.id === pairOfT1.id) return { ...t, icon: t2.icon };
+                  return t;
+                });
+              }
+            }
+          }
+        }
+        setMahjongTiles(finalTiles);
+      }
+    } else {
+      playSound('error');
+      setMahjongSelected(tile); 
+    }
+  };
+  
+  const useHintMahjong = () => {
+    if (hints < 2 || mahjongHintPair || isPaused) return;
+    const moves = checkMahjongMoves(mahjongTiles);
+    if (moves && moves !== true) {
+      playSound('click');
+      setHints(h => h - 2);
+      setMahjongHintPair([moves[0].id, moves[1].id]);
+      setTimeout(() => setMahjongHintPair(null), 2000);
+    }
+  };
+
+  const handlePipaClick = (r, c) => {
+    if (isPaused || feedback) return;
+    playSound('click');
+    const { rows, cols } = getPipaLevelConfig(currentLevel);
+    
+    let newGrid = [...pipaGrid];
+    newGrid[r] = [...newGrid[r]];
+    let cell = {...newGrid[r][c]};
+    
+    // Rotasi Pipa 90 derajat ke kanan
+    cell.conns = [cell.conns[3], cell.conns[0], cell.conns[1], cell.conns[2]];
+    newGrid[r][c] = cell;
+
+    setPipaGrid(newGrid);
+
+    // Cek Aliran Air
+    const { flowGrid, win } = checkWaterFlow(newGrid, rows, cols);
+    setPipaFlow(flowGrid);
+
+    if (win) handleLevelComplete(startPipa);
+  };
+
+  const useHintPipa = () => {
+    if (hints < 2 || feedback || isPaused) return;
+    const { rows, cols } = getPipaLevelConfig(currentLevel);
+    
+    let wrongCells = [];
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        if (pipaGrid[r][c].conns.join() !== pipaGrid[r][c].targetConns.join()) {
+          wrongCells.push({r, c});
+        }
+      }
+    }
+    
+    if (wrongCells.length > 0) {
+      playSound('success');
+      setHints(h => h - 2);
+      
+      let choice = wrongCells[Math.floor(Math.random() * wrongCells.length)];
+      let newGrid = [...pipaGrid];
+      newGrid[choice.r] = [...newGrid[choice.r]];
+      
+      // Paksa ke posisi sempurna
+      newGrid[choice.r][choice.c].conns = [...newGrid[choice.r][choice.c].targetConns];
+      setPipaGrid(newGrid);
+
+      const { flowGrid, win } = checkWaterFlow(newGrid, rows, cols);
+      setPipaFlow(flowGrid);
+      
+      if (win) handleLevelComplete(startPipa);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => { setBgIndex((prev) => prev + 1); }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (seconds) => { const m = Math.floor(seconds / 60); const s = seconds % 60; return `${m}:${s.toString().padStart(2, '0')}`; };
+
+  // === KOMPONEN UI GLOBAL ===
+  const Header = ({ title, onHint, currentLvl, totalLvl }) => (
+    <div className="flex justify-between items-center mb-6 z-10 relative">
+      <button onClick={() => { playSound('click'); changeBgmTrack(); setIsTimerRunning(false); setIsPaused(false); setGameState('menu'); }} className="p-3 bg-white/20 rounded-2xl hover:bg-white/30 shadow-md backdrop-blur-md border border-white/30 transition-all text-white active:scale-95">
+        <ArrowLeft size={24} />
+      </button>
+      <div className="flex flex-col items-center">
+        <h2 className="text-sm font-extrabold text-white uppercase tracking-widest drop-shadow-md">{title}</h2>
+        <div className="font-bold text-white bg-black/30 px-4 py-1 rounded-full text-sm mt-1 backdrop-blur-md border border-white/20 shadow-inner">Level {currentLvl + 1}/{totalLvl}</div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => { if (!feedback) { playSound('click'); setIsPaused(!isPaused); } }} className="flex items-center justify-center bg-blue-500 text-white p-2 px-3 rounded-2xl font-black hover:bg-blue-400 transition shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1">
+          {isPaused ? <Play size={20} fill="currentColor" /> : <Pause size={20} fill="currentColor" />}
+        </button>
+        <div className={`flex items-center gap-1 p-2 px-3 rounded-2xl font-black shadow-lg border-b-4 transition ${timeLeft <= 10 && !isPaused ? 'bg-red-500/90 text-white border-red-700 animate-pulse' : 'bg-white/20 text-white border-white/40'}`}>
+          <Clock size={20} /> <span className="text-sm w-8 text-center">{formatTime(timeLeft)}</span>
+        </div>
+        <button onClick={onHint} className="flex items-center gap-1 bg-yellow-400 text-yellow-900 p-2 px-3 rounded-2xl font-black hover:bg-yellow-300 transition shadow-lg border-b-4 border-yellow-600 active:border-b-0 active:translate-y-1">
+          <Lightbulb size={20} /> <span className="text-sm">{hints}</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  const PauseOverlay = () => {
+    if (!isPaused) return null;
+    return (
+      <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-6">
+        <div className="bg-black/60 p-10 rounded-[3rem] border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center flex flex-col items-center max-w-sm w-full backdrop-blur-2xl">
+          <Pause size={64} className="text-blue-400 mb-4 animate-pulse" />
+          <h2 className="text-4xl font-black mb-8 text-white drop-shadow-md tracking-widest uppercase">Dijeda</h2>
+          <button onClick={() => { playSound('click'); setIsPaused(false); }} className="px-8 py-4 bg-blue-500 hover:bg-blue-400 text-white rounded-2xl font-black text-xl shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all w-full flex items-center justify-center gap-3">
+            <Play fill="currentColor" size={24} /> Lanjutkan
+          </button>
+          <button onClick={() => { playSound('click'); setIsPaused(false); setIsTimerRunning(false); setGameState('menu'); changeBgmTrack(); }} className="mt-5 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-lg shadow-lg border border-white/20 transition-all w-full">
+            Kembali ke Menu
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const CustomKeyboard = ({ onKeyPress }) => {
+    const rows = [ "QWERTYUIOP".split(''), "ASDFGHJKL".split(''), "ZXCVBNM".split('') ];
+    return (
+      <div className="flex flex-col gap-2 mt-auto pb-4 w-full max-w-md mx-auto z-10 relative">
+        {rows.map((row, i) => (
+          <div key={i} className="flex justify-center gap-1 sm:gap-2">
+            {row.map(k => (
+              <button key={k} onClick={() => onKeyPress(k)} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold rounded-xl h-12 flex-1 max-w-[2.5rem] shadow-md border-b-4 border-white/30 active:border-b-0 active:translate-y-1 transition-all text-sm sm:text-base">{k}</button>
+            ))}
+            {i === 2 && (
+              <button onClick={() => onKeyPress('DEL')} className="bg-red-500/80 hover:bg-red-500 backdrop-blur-md text-white font-bold rounded-xl h-12 px-3 shadow-md border-b-4 border-red-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center"><Delete size={20} /></button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // === RENDER MENU ===
+  if (gameState === 'menu') return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-white relative overflow-hidden font-sans">
+      <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+      
+      <button onClick={() => { playSound('click'); setAppTheme((prev) => (prev + 1) % APP_THEMES.length); }} className="absolute top-6 left-6 p-3 bg-white/20 rounded-2xl hover:bg-white/30 shadow-md backdrop-blur-md border border-white/30 text-white transition-all z-20 hover:scale-110 active:scale-95 flex items-center gap-2">
+        <Palette size={24} /> <span className="text-sm font-bold hidden sm:inline">{APP_THEMES[appTheme].name}</span>
+      </button>
+
+      <button onClick={toggleMusic} className="absolute top-6 right-6 p-3 bg-white/20 rounded-2xl hover:bg-white/30 shadow-md backdrop-blur-md border border-white/30 text-white transition-all z-20 hover:scale-110 active:scale-95">
+        {isMusicOn ? <Volume2 size={28} /> : <VolumeX size={28} />}
+      </button>
+
+      <div className="z-10 text-center mb-10 mt-8">
+        <h1 className="text-6xl font-black mb-4 text-white drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] tracking-tight">Game Pintar</h1>
+        <div className="inline-flex items-center gap-3 bg-black/30 px-5 py-2.5 rounded-full border border-white/20 backdrop-blur-md shadow-xl text-lg">
+          <Trophy size={22} className="text-yellow-400 drop-shadow-md" /> <span className="font-bold text-white">Skor: {score}</span> <span className="text-white/50">|</span>
+          <Lightbulb size={22} className="text-yellow-400 drop-shadow-md" /> <span className="font-bold text-white">Bantuan: {hints}</span>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-sm sm:max-w-md z-10">
+        <button onClick={() => { playSound('click'); startSusunKata(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-blue-500 text-white rounded-full group-hover:rotate-12 transition-transform shadow-lg"><Type size={40} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Susun Kata</span>
+        </button>
+        <button onClick={() => { playSound('click'); startAsahOtak(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-emerald-500 text-white rounded-full group-hover:-rotate-12 transition-transform shadow-lg"><Brain size={40} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Asah Otak</span>
+        </button>
+        <button onClick={() => { playSound('click'); startTTS(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-purple-500 text-white rounded-full group-hover:scale-110 transition-transform shadow-lg"><Grid3x3 size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">TTS</span>
+        </button>
+        <button onClick={() => { playSound('click'); startOnet(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-rose-500 text-white rounded-full group-hover:scale-110 transition-transform shadow-lg"><Link2 size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Onet Match</span>
+        </button>
+        <button onClick={() => { playSound('click'); startMahjong(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-amber-500 text-white rounded-full group-hover:scale-110 transition-transform shadow-lg"><Layers size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Mahjong</span>
+        </button>
+        <button onClick={() => { playSound('click'); startPipa(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+          <div className="p-4 bg-cyan-500 text-white rounded-full group-hover:scale-110 transition-transform shadow-lg"><Droplet size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Pipa Bocor</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // === RENDER SUSUN KATA ===
+  if (gameState === 'susun-kata') {
+    const currentData = activeSusunKataData[currentLevel];
+    return (
+      <div className="flex flex-col min-h-screen p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Susun Kata" onHint={useHintSusunKata} currentLvl={currentLevel} totalLvl={activeSusunKataData.length} />
+        <div className="flex-1 flex flex-col items-center mt-4 z-10">
+          <div className="bg-black/30 backdrop-blur-xl border border-white/20 shadow-2xl rounded-[2.5rem] p-6 w-full max-w-md text-center">
+            <p className="text-white/70 text-sm mb-2 uppercase tracking-wider font-bold">Petunjuk</p>
+            <p className="text-2xl font-bold text-white mb-10 drop-shadow-md">"{currentData.hint}"</p>
+            <div className="flex justify-center flex-wrap gap-2 mb-10 min-h-[4rem]">
+              {placedLetters.map((item, idx) => (
+                <div key={idx} onClick={() => clickPlacedLetter(idx)} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg transition-all cursor-pointer border-b-4 ${item ? 'bg-white/90 text-indigo-900 border-white/50 hover:bg-white' : 'bg-black/20 border-black/30 border-2 border-dashed'} ${feedback === 'wrong' ? 'animate-shake bg-red-500 text-white border-red-700' : ''} ${feedback === 'correct' ? 'bg-emerald-400 text-white border-emerald-600 animate-bounce' : ''}`}>{item ? item.char : ''}</div>
+              ))}
+            </div>
+            <div className="flex justify-center flex-wrap gap-3">
+              {availableLetters.map((item) => (
+                <button key={item.id} onClick={() => clickAvailableLetter(item)} className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md border-b-4 border-white/30 hover:bg-white/30 active:border-b-0 active:translate-y-1 rounded-2xl flex items-center justify-center text-2xl font-black text-white transition-all shadow-md">{item.char}</button>
+              ))}
+            </div>
+          </div>
+          {feedback === 'correct' && <div className="mt-8 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-md border-2 border-emerald-300"><CheckCircle size={28} /> +10 Poin & +3 Bantuan!</div>}
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER ASAH OTAK ===
+  if (gameState === 'asah-otak') {
+    const currentData = activeAsahOtakData[currentLevel];
+    return (
+      <div className="flex flex-col min-h-screen p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Asah Otak" onHint={useHintAsahOtak} currentLvl={currentLevel} totalLvl={activeAsahOtakData.length} />
+        <div className="flex-1 flex flex-col items-center justify-center z-10">
+          <div className="bg-black/30 backdrop-blur-xl p-8 rounded-[3rem] w-full max-w-md shadow-2xl border border-white/20">
+            <div className="mb-10 text-center">
+              <div className="inline-block p-4 bg-white/20 rounded-full mb-6 shadow-inner backdrop-blur-md"><Brain size={48} className="text-white drop-shadow-md" /></div>
+              <h2 className="text-2xl font-black leading-relaxed drop-shadow-md">{currentData.question}</h2>
+            </div>
+            <div className="space-y-4">
+              {currentData.options.map((option, idx) => {
+                const isEliminated = eliminatedOptions.includes(option);
+                let btnStyle = "bg-white/20 hover:bg-white/30 border-white/30 text-white";
+                if (feedback && selectedOption === option) btnStyle = option === currentData.answer ? "bg-emerald-500 border-emerald-700 text-white" : "bg-red-500 border-red-700 text-white";
+                else if (feedback && option === currentData.answer) btnStyle = "bg-emerald-500 border-emerald-700 text-white";
+                else if (isEliminated) btnStyle = "bg-black/20 border-black/30 text-white/40 opacity-50 cursor-not-allowed";
+                return (
+                  <button key={idx} onClick={() => !isEliminated && handleAsahOtakSubmit(option)} disabled={feedback !== null || isEliminated || isPaused} className={`w-full text-left px-6 py-5 rounded-[1.5rem] border-b-4 font-bold transition-all shadow-md active:border-b-0 active:translate-y-1 flex justify-between items-center backdrop-blur-md ${btnStyle}`}>
+                    <span className="text-lg">{option}</span> {feedback === 'correct' && option === currentData.answer && <CheckCircle size={24} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER TEKA-TEKI SILANG ===
+  if (gameState === 'tts') {
+    const currentData = activeTtsData[currentLevel];
+    let activeClue = "";
+    if (selectedCell) {
+      const activeWordInfo = currentData.words.find(w => w.dir === selectedCell.dir && (selectedCell.dir === 'H' ? (selectedCell.r === w.r && selectedCell.c >= w.c && selectedCell.c < w.c + w.answer.length) : (selectedCell.c === w.c && selectedCell.r >= w.r && selectedCell.r < w.r + w.answer.length)));
+      if (activeWordInfo) activeClue = activeWordInfo.clue;
+    }
+    return (
+      <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Teka-Teki Silang" onHint={useHintTTS} currentLvl={currentLevel} totalLvl={activeTtsData.length} />
+        <div className="flex-1 flex flex-col items-center z-10 mt-2">
+          <div className="bg-black/40 backdrop-blur-xl p-4 rounded-3xl border border-white/30 w-full max-w-md text-center mb-6 shadow-2xl min-h-[5rem] flex items-center justify-center">
+            <p className="text-xl text-white font-bold drop-shadow-md">{activeClue || "Pilih kotak untuk melihat petunjuk"}</p>
+          </div>
+          <div className="grid gap-1 mb-6 bg-black/30 p-3 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-md" style={{ gridTemplateColumns: `repeat(${currentData.cols}, minmax(0, 1fr))` }}>
+            {ttsGrid.map((row, r) => row.map((cell, c) => {
+                const isSelected = selectedCell?.r === r && selectedCell?.c === c;
+                if (!cell.isActive) return <div key={`${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent" />;
+                return (
+                  <div key={`${r}-${c}`} onClick={() => handleTTSCellClick(r, c)} className={`relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl text-xl sm:text-2xl font-black cursor-pointer transition-all border-b-4 ${isSelected ? 'bg-yellow-400 border-yellow-600 text-yellow-900 scale-110 z-10 shadow-lg' : cell.value === cell.expected ? 'bg-emerald-400 text-white border-emerald-600' : cell.value ? 'bg-white/90 text-indigo-900 border-white/50' : 'bg-white/20 text-white border-white/30'}`}>
+                    {cell.number && <span className="absolute top-0.5 left-1 text-[9px] sm:text-[11px] opacity-70 font-bold">{cell.number}</span>} {cell.value}
+                  </div>
+                )
+              })
+            )}
+          </div>
+          {feedback === 'correct' && <div className="mb-4 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-md border-2 border-emerald-300"><CheckCircle size={28} /> Level Selesai! (+10 Poin)</div>}
+          <CustomKeyboard onKeyPress={handleTTSKeyPress} />
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER ONET ===
+  if (gameState === 'onet') {
+    const { rows, cols } = getOnetLevelConfig(currentLevel);
+    return (
+      <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Onet Match" onHint={useHintOnet} currentLvl={currentLevel} totalLvl={100} />
+        <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
+          <div className="relative w-full max-w-sm bg-black/20 backdrop-blur-lg p-2 sm:p-4 rounded-3xl border border-white/20 shadow-2xl">
+            <svg className="absolute inset-0 z-20 pointer-events-none w-full h-full" style={{ overflow: 'visible' }}>
+              {onetPath && onetPath.map((p, idx) => {
+                if (idx === 0) return null; const prev = onetPath[idx - 1];
+                return <line key={idx} x1={`${(prev.c + 0.5) * (100 / cols)}%`} y1={`${(prev.r + 0.5) * (100 / rows)}%`} x2={`${(p.c + 0.5) * (100 / cols)}%`} y2={`${(p.r + 0.5) * (100 / rows)}%`} stroke="#facc15" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse shadow-lg" />;
+              })}
+            </svg>
+            <div className="grid gap-1 sm:gap-2 relative z-10" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}>
+              {onetGrid.map((row, r) => row.map((cell, c) => {
+                  const isSelected = onetSelected?.r === r && onetSelected?.c === c;
+                  const isHinted = onetHintPair && ((onetHintPair[0].r === r && onetHintPair[0].c === c) || (onetHintPair[1].r === r && onetHintPair[1].c === c));
+                  if (!cell) return <div key={`${r}-${c}`} className="aspect-square bg-transparent" />;
+                  return (
+                    <button key={cell.id} onClick={() => handleOnetClick(r, c)} className={`aspect-square flex items-center justify-center rounded-xl sm:rounded-2xl text-2xl sm:text-4xl font-black cursor-pointer transition-all border-b-4 ${isSelected ? 'bg-yellow-300 border-yellow-500 scale-105 shadow-lg z-10' : isHinted ? 'bg-emerald-400 border-emerald-600 animate-bounce shadow-lg z-10' : 'bg-white/90 border-white/50 text-slate-800 hover:bg-white'} transform active:translate-y-1 active:border-b-0`}>{cell.icon}</button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+          {feedback === 'correct' && <div className="mt-6 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300"><CheckCircle size={28} /> Level Selesai! (+10 Poin)</div>}
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER MAHJONG SUSUN ===
+  if (gameState === 'mahjong') {
+    return (
+      <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Mahjong Susun" onHint={useHintMahjong} currentLvl={currentLevel} totalLvl={150} />
+
+        <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
+          <div className="relative w-full max-w-3xl mx-auto aspect-[12/8] bg-black/30 backdrop-blur-lg rounded-[2.5rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 sm:p-8 overflow-visible touch-manipulation">
+            
+            <div className="relative w-full h-full">
+              {mahjongTiles.map((tile) => {
+                if (!tile.isActive) return null;
+                
+                const isSelected = mahjongSelected?.id === tile.id;
+                const isHinted = mahjongHintPair && (mahjongHintPair[0] === tile.id || mahjongHintPair[1] === tile.id);
+                const activeRemaining = mahjongTiles.filter(t => t.isActive);
+                const isFree = isMahjongFree(tile, activeRemaining);
+
+                const shadowBase = !isFree ? '#64748b' : '#cbd5e1';
+                const shadowDark = !isFree ? '#475569' : '#94a3b8';
+                
+                const blockShadow = isSelected ? '0 0 15px rgba(250,204,21,1), 2px 2px 0 #ca8a04, 4px 4px 0 #a16207' : 
+                                    isHinted ? '0 0 15px rgba(52,211,153,1), 2px 2px 0 #059669, 4px 4px 0 #047857' : 
+                                    `1px 1px 0 ${shadowBase}, 2px 2px 0 ${shadowBase}, 3px 3px 0 ${shadowDark}, 4px 4px 0 ${shadowDark}, 5px 5px 0 ${shadowDark}, 7px 7px 10px rgba(0,0,0,0.5)`;
+
+                return (
+                  <button
+                    key={tile.id}
+                    onClick={() => handleMahjongClick(tile)}
+                    style={{
+                      left: `${tile.x * 8.33}%`, 
+                      top: `${tile.y * 12.5}%`,  
+                      zIndex: Math.floor(tile.z * 1000 + tile.y * 100 + tile.x * 10) + (isSelected ? 10000 : 0),
+                      transform: `translate(${-tile.z * 4}px, ${-tile.z * 6}px) scale(${isSelected ? 1.05 : 1})`,
+                      width: '7.8%',
+                      height: '11.8%',
+                      boxShadow: blockShadow
+                    }}
+                    className={`absolute flex items-center justify-center text-xl sm:text-2xl lg:text-3xl rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer border border-white/60
+                      ${isSelected ? 'bg-yellow-300 text-yellow-900' : 
+                        isHinted ? 'bg-emerald-400 text-white animate-pulse' : 
+                        !isFree ? 'bg-slate-300 text-slate-800 brightness-[0.6]' : 
+                        'bg-slate-50 text-slate-800 hover:bg-white'
+                      } active:translate-y-1 active:shadow-none
+                    `}
+                  >
+                    {tile.icon}
+                  </button>
+                );
+              })}
+            </div>
+            
+          </div>
+          
+          {feedback === 'correct' && (
+            <div className="mt-8 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300">
+              <CheckCircle size={28} /> Level Selesai! (+10 Poin)
+            </div>
+          )}
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER PIPA BOCOR ===
+  if (gameState === 'pipa') {
+    const { rows, cols } = getPipaLevelConfig(currentLevel);
+    return (
+      <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <Header title="Pipa Bocor" onHint={useHintPipa} currentLvl={currentLevel} totalLvl={100} />
+        
+        <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
+          {/* Box penampung Grid dirubah agar terlihat seperti mesin industrial */}
+          <div className="relative w-full max-w-md bg-slate-900 p-3 sm:p-4 rounded-[2.5rem] border-8 border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+            {/* Gap diubah jadi 0 agar sambungan antar pipa menempel rata */}
+            <div className="grid gap-0 relative z-10 bg-black/60 rounded-xl overflow-hidden shadow-[inset_0_10px_20px_rgba(0,0,0,0.9)]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+              {pipaGrid.map((row) => row.map((cell) => {
+                const isStart = cell.r === 0 && cell.c === 0;
+                const isEnd = cell.r === rows - 1 && cell.c === cols - 1;
+                const isFlowing = pipaFlow[cell.r][cell.c];
+                
+                return (
+                  <button 
+                    key={`${cell.r}-${cell.c}`} 
+                    onClick={() => handlePipaClick(cell.r, cell.c)} 
+                    // Menghilangkan jarak (gap) pada background button
+                    className={`aspect-square bg-transparent hover:bg-white/10 transition-colors flex items-center justify-center transform active:scale-95 ${isFlowing ? 'z-20' : 'z-10'}`}
+                  >
+                    <PipeSVG conns={cell.conns} isFlowing={isFlowing} isStart={isStart} isEnd={isEnd} />
+                  </button>
+                );
+              }))}
+            </div>
+          </div>
+          
+          {feedback === 'correct' && (
+            <div className="mt-6 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300">
+              <CheckCircle size={28} /> Level Selesai! (+10 Poin)
+            </div>
+          )}
+        </div>
+        <PauseOverlay />
+      </div>
+    );
+  }
+
+  // === RENDER GAME OVER / TIME OUT ===
+  if (gameState === 'game-over') {
+    const isTimeout = gameOverReason === 'timeout';
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-white relative overflow-hidden">
+        <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
+        <div className="bg-black/40 p-10 rounded-[3.5rem] text-center max-w-sm w-full border border-white/30 shadow-2xl backdrop-blur-2xl z-10">
+          <div className={`inline-block p-6 rounded-full mb-6 ${isTimeout ? 'bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-bounce' : 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.6)] animate-pulse'}`}>
+            {isTimeout ? <Clock size={80} className="text-white mx-auto" /> : <Trophy size={80} className="text-yellow-900 mx-auto" />}
+          </div>
+          <h2 className="text-4xl font-black mb-2 drop-shadow-md">{isTimeout ? "Waktu Habis!" : "Luar Biasa!"}</h2>
+          <p className="text-white/80 font-medium mb-8">{isTimeout ? "Jangan menyerah, coba lagi dari awal!" : "Kamu telah menaklukkan semua tantangan."}</p>
+          <div className="bg-white/10 p-6 rounded-3xl mb-8 border border-white/20 shadow-inner backdrop-blur-md">
+            <p className="text-sm text-white/70 uppercase tracking-widest font-black mb-2">Total Skormu</p>
+            <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-orange-400 drop-shadow-md">{score}</p>
+          </div>
+          <button onClick={() => { playSound('click'); changeBgmTrack(); setGameState('menu'); }} className="w-full bg-white text-indigo-900 hover:bg-gray-100 p-5 rounded-2xl font-black text-lg transition-transform transform active:scale-95 shadow-xl border-b-4 border-gray-300">
+            {isTimeout ? "Kembali ke Menu" : "Main Lagi"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
