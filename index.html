@@ -49,6 +49,9 @@
         const Layers = (p) => <SVGIcon {...p}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></SVGIcon>;
         const Palette = (p) => <SVGIcon {...p}><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></SVGIcon>;
         const Droplet = (p) => <SVGIcon {...p}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></SVGIcon>;
+        const Package = (p) => <SVGIcon {...p}><line x1="16.5" y1="9.4" x2="7.5" y2="4.2"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></SVGIcon>;
+        const RotateCcw = (p) => <SVGIcon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></SVGIcon>;
+        const RefreshCw = (p) => <SVGIcon {...p}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></SVGIcon>;
 
         // --- DATA SOAL SUSUN KATA (50 Soal) ---
         const susunKataData = [
@@ -183,6 +186,54 @@
               { id: 3, dir: 'V', r: 1, c: 4, answer: 'LARI', clue: 'Berjalan dengan cepat (Menurun)' }
             ]
           }
+        ];
+
+        // --- DATA LEVEL SOKOBAN (6 Level Klasik) ---
+        // Simbol: '#' Tembok, ' ' Lantai Kosong, '.' Target Kotak, '$' Kotak, '@' Pemain
+        const sokobanLevels = [
+          [
+            "#####",
+            "#@$.#",
+            "#####"
+          ],
+          [
+            "######",
+            "#    #",
+            "#@$  #",
+            "###.##",
+            "######"
+          ],
+          [
+            "#######",
+            "#     #",
+            "# .$. #",
+            "## $@##",
+            "#  .  #",
+            "#######"
+          ],
+          [
+            "  ###  ",
+            "  #.#  ",
+            "###$###",
+            "#@ $ .#",
+            "#######"
+          ],
+          [
+            "#######",
+            "#   . #",
+            "# $$@ #",
+            "#  .  #",
+            "#######"
+          ],
+          [
+            " #### ",
+            " #  # ",
+            " #  # ",
+            "##$ ##",
+            "#. $@#",
+            "#.   #",
+            "######"
+          ]
         ];
 
         // --- DATA & CONFIG ONET & MAHJONG ---
@@ -615,6 +666,11 @@
           const [pipaGrid, setPipaGrid] = useState([]);
           const [pipaFlow, setPipaFlow] = useState([]);
 
+          // States: Sokoban
+          const [sokobanGrid, setSokobanGrid] = useState([]);
+          const [sokobanHistory, setSokobanHistory] = useState([]);
+          const [sokobanPlayer, setSokobanPlayer] = useState(null);
+
           const toggleMusic = () => {
             playSound('click');
             if (isMusicOn) { stopBGM(); setIsMusicOn(false); } 
@@ -867,6 +923,29 @@
             setIsPaused(false); changeBgmTrack(); setTimeLeft(45 + level * 10); setIsTimerRunning(true); setGameState('pipa');
           };
 
+          const startSokoban = (level = 0) => {
+            if (level >= sokobanLevels.length) { setGameOverReason('completed'); setGameState('game-over'); setIsTimerRunning(false); return; }
+            
+            const rawGrid = sokobanLevels[level];
+            const maxCols = Math.max(...rawGrid.map(r => r.length));
+            let pPos = null;
+            let grid = rawGrid.map((row, r) => {
+              const paddedRow = row.padEnd(maxCols, ' ');
+              return paddedRow.split('').map((cell, c) => {
+                if (cell === '@' || cell === '+') pPos = { r, c };
+                return cell;
+              });
+            });
+            
+            setSokobanGrid(grid);
+            setSokobanPlayer(pPos);
+            setSokobanHistory([]);
+            setCurrentLevel(level);
+            setFeedback(null);
+            if (level === 0) setScore(0);
+            setIsPaused(false); changeBgmTrack(); setTimeLeft(120 + level * 45); setIsTimerRunning(true); setGameState('sokoban');
+          };
+
           // --- EVENT HANDLER SEMUA GAME ---
           const clickAvailableLetter = (item) => { if (isPaused) return; playSound('click'); const firstEmpty = placedLetters.findIndex(x => x === null); if (firstEmpty !== -1 && !feedback) { const newPlaced = [...placedLetters]; newPlaced[firstEmpty] = item; setPlacedLetters(newPlaced); setAvailableLetters(availableLetters.filter(x => x.id !== item.id)); } };
           const clickPlacedLetter = (index) => { if (isPaused) return; playSound('click'); const item = placedLetters[index]; if (item && !feedback) { const newPlaced = [...placedLetters]; newPlaced[index] = null; setPlacedLetters(newPlaced); setAvailableLetters([...availableLetters, item]); } };
@@ -1070,6 +1149,91 @@
             }
           };
 
+          // --- EVENT HANDLER SOKOBAN ---
+          const handleSokobanMove = (dr, dc) => {
+            if (isPaused || feedback || gameState !== 'sokoban' || !sokobanPlayer) return;
+            const { r, c } = sokobanPlayer;
+            const nr = r + dr, nc = c + dc;
+            const nnr = r + dr * 2, nnc = c + dc * 2;
+
+            let grid = sokobanGrid.map(row => [...row]);
+            const dest = grid[nr]?.[nc];
+
+            let moved = false;
+            // Fungsi pembantu mengekstrak dasar lantai (' ' atau '.')
+            const getBase = (char) => (char === '*' || char === '.' || char === '+') ? '.' : ' ';
+
+            if (dest === ' ' || dest === '.') {
+               // Pindah ke ruang kosong
+               grid[r][c] = getBase(grid[r][c]);
+               grid[nr][nc] = (dest === '.') ? '+' : '@';
+               moved = true;
+            } else if (dest === '$' || dest === '*') {
+               // Berusaha dorong kotak
+               const pushDest = grid[nnr]?.[nnc];
+               if (pushDest === ' ' || pushDest === '.') {
+                  // Pindahkan kotak
+                  grid[nnr][nnc] = (pushDest === '.') ? '*' : '$';
+                  // Majukan pemain
+                  grid[nr][nc] = (dest === '*') ? '+' : '@';
+                  grid[r][c] = getBase(grid[r][c]);
+                  moved = true;
+               }
+            }
+
+            if (moved) {
+              playSound('click');
+              setSokobanHistory([...sokobanHistory, { grid: sokobanGrid, player: sokobanPlayer }]);
+              setSokobanGrid(grid);
+              setSokobanPlayer({ r: nr, c: nc });
+
+              // Cek Kondisi Menang (jika tidak ada lagi kotak '$' di luar target)
+              let win = true;
+              for (let row of grid) { if (row.includes('$')) { win = false; break; } }
+              if (win) handleLevelComplete(startSokoban);
+            }
+          };
+
+          const undoSokobanMove = () => {
+            if (sokobanHistory.length === 0 || isPaused || feedback || gameState !== 'sokoban') return;
+            playSound('click');
+            const lastState = sokobanHistory[sokobanHistory.length - 1];
+            setSokobanGrid(lastState.grid);
+            setSokobanPlayer(lastState.player);
+            setSokobanHistory(sokobanHistory.slice(0, -1));
+          };
+
+          const restartSokobanLevel = () => {
+            if (sokobanHistory.length === 0 || isPaused || feedback || gameState !== 'sokoban') return;
+            playSound('click');
+            const firstState = sokobanHistory[0];
+            setSokobanGrid(firstState.grid);
+            setSokobanPlayer(firstState.player);
+            setSokobanHistory([]);
+          };
+
+          const useHintSokoban = () => {
+            if (hints < 3 || isPaused || feedback) return;
+            playSound('success');
+            setHints(h => h - 3);
+            handleLevelComplete(startSokoban); // Skip Level (Sokoban terlalu kompleks untuk diselesaikan 1 langkah)
+          };
+
+          // Hook Keyboard Global untuk Sokoban
+          useEffect(() => {
+            const handleKeyDown = (e) => {
+              if (gameState !== 'sokoban' || isPaused || feedback) return;
+              switch(e.key) {
+                case 'ArrowUp': case 'w': case 'W': handleSokobanMove(-1, 0); break;
+                case 'ArrowDown': case 's': case 'S': handleSokobanMove(1, 0); break;
+                case 'ArrowLeft': case 'a': case 'A': handleSokobanMove(0, -1); break;
+                case 'ArrowRight': case 'd': case 'D': handleSokobanMove(0, 1); break;
+              }
+            };
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
+          }, [gameState, isPaused, feedback, sokobanGrid, sokobanPlayer]);
+
           useEffect(() => {
             const interval = setInterval(() => { setBgIndex((prev) => prev + 1); }, 5000);
             return () => clearInterval(interval);
@@ -1177,6 +1341,9 @@
                 <button onClick={() => { playSound('click'); startPipa(0); }} className={`aspect-square flex flex-col items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
                   <div className="p-4 bg-cyan-500 text-white rounded-full group-hover:scale-110 transition-transform shadow-lg"><Droplet size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Pipa Bocor</span>
                 </button>
+                <button onClick={() => { playSound('click'); startSokoban(0); }} className={`col-span-2 flex flex-col sm:flex-row items-center justify-center gap-4 backdrop-blur-lg p-4 rounded-[2.5rem] shadow-xl transition-all transform hover:scale-105 active:scale-95 group border-2 border-b-8 active:border-b-2 active:translate-y-2 ${APP_THEMES[appTheme].card}`}>
+                  <div className="p-4 bg-orange-500 text-white rounded-full group-hover:-rotate-12 transition-transform shadow-lg"><Package size={36} /></div> <span className="font-extrabold text-lg sm:text-xl drop-shadow-md">Sokoban</span>
+                </button>
               </div>
             </div>
           );
@@ -1210,210 +1377,74 @@
             );
           }
 
-          // === RENDER ASAH OTAK ===
-          if (gameState === 'asah-otak') {
-            const currentData = activeAsahOtakData[currentLevel];
-            return (
-              <div className="flex flex-col min-h-screen p-6 text-white relative overflow-hidden">
-                <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
-                <Header title="Asah Otak" onHint={useHintAsahOtak} currentLvl={currentLevel} totalLvl={activeAsahOtakData.length} />
-                <div className="flex-1 flex flex-col items-center justify-center z-10">
-                  <div className="bg-black/30 backdrop-blur-xl p-8 rounded-[3rem] w-full max-w-md shadow-2xl border border-white/20">
-                    <div className="mb-10 text-center">
-                      <div className="inline-block p-4 bg-white/20 rounded-full mb-6 shadow-inner backdrop-blur-md"><Brain size={48} className="text-white drop-shadow-md" /></div>
-                      <h2 className="text-2xl font-black leading-relaxed drop-shadow-md">{currentData.question}</h2>
-                    </div>
-                    <div className="space-y-4">
-                      {currentData.options.map((option, idx) => {
-                        const isEliminated = eliminatedOptions.includes(option);
-                        let btnStyle = "bg-white/20 hover:bg-white/30 border-white/30 text-white";
-                        if (feedback && selectedOption === option) btnStyle = option === currentData.answer ? "bg-emerald-500 border-emerald-700 text-white" : "bg-red-500 border-red-700 text-white";
-                        else if (feedback && option === currentData.answer) btnStyle = "bg-emerald-500 border-emerald-700 text-white";
-                        else if (isEliminated) btnStyle = "bg-black/20 border-black/30 text-white/40 opacity-50 cursor-not-allowed";
-                        return (
-                          <button key={idx} onClick={() => !isEliminated && handleAsahOtakSubmit(option)} disabled={feedback !== null || isEliminated || isPaused} className={`w-full text-left px-6 py-5 rounded-[1.5rem] border-b-4 font-bold transition-all shadow-md active:border-b-0 active:translate-y-1 flex justify-between items-center backdrop-blur-md ${btnStyle}`}>
-                            <span className="text-lg">{option}</span> {feedback === 'correct' && option === currentData.answer && <CheckCircle size={24} />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <PauseOverlay />
-              </div>
-            );
-          }
-
-          // === RENDER TEKA-TEKI SILANG ===
-          if (gameState === 'tts') {
-            const currentData = activeTtsData[currentLevel];
-            let activeClue = "";
-            if (selectedCell) {
-              const activeWordInfo = currentData.words.find(w => w.dir === selectedCell.dir && (selectedCell.dir === 'H' ? (selectedCell.r === w.r && selectedCell.c >= w.c && selectedCell.c < w.c + w.answer.length) : (selectedCell.c === w.c && selectedCell.r >= w.r && selectedCell.r < w.r + w.answer.length)));
-              if (activeWordInfo) activeClue = activeWordInfo.clue;
-            }
+          // === RENDER SOKOBAN ===
+          if (gameState === 'sokoban') {
+            const cols = sokobanGrid[0]?.length || 1;
             return (
               <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
                 <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
-                <Header title="Teka-Teki Silang" onHint={useHintTTS} currentLvl={currentLevel} totalLvl={activeTtsData.length} />
-                <div className="flex-1 flex flex-col items-center z-10 mt-2">
-                  <div className="bg-black/40 backdrop-blur-xl p-4 rounded-3xl border border-white/30 w-full max-w-md text-center mb-6 shadow-2xl min-h-[5rem] flex items-center justify-center">
-                    <p className="text-xl text-white font-bold drop-shadow-md">{activeClue || "Pilih kotak untuk melihat petunjuk"}</p>
-                  </div>
-                  <div className="grid gap-1 mb-6 bg-black/30 p-3 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-md" style={{ gridTemplateColumns: `repeat(${currentData.cols}, minmax(0, 1fr))` }}>
-                    {ttsGrid.map((row, r) => row.map((cell, c) => {
-                        const isSelected = selectedCell?.r === r && selectedCell?.c === c;
-                        if (!cell.isActive) return <div key={`${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent" />;
-                        return (
-                          <div key={`${r}-${c}`} onClick={() => handleTTSCellClick(r, c)} className={`relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl text-xl sm:text-2xl font-black cursor-pointer transition-all border-b-4 ${isSelected ? 'bg-yellow-400 border-yellow-600 text-yellow-900 scale-110 z-10 shadow-lg' : cell.value === cell.expected ? 'bg-emerald-400 text-white border-emerald-600' : cell.value ? 'bg-white/90 text-indigo-900 border-white/50' : 'bg-white/20 text-white border-white/30'}`}>
-                            {cell.number && <span className="absolute top-0.5 left-1 text-[9px] sm:text-[11px] opacity-70 font-bold">{cell.number}</span>} {cell.value}
-                          </div>
-                        )
-                      })
-                    )}
-                  </div>
-                  {feedback === 'correct' && <div className="mb-4 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-md border-2 border-emerald-300"><CheckCircle size={28} /> Level Selesai! (+10 Poin)</div>}
-                  <CustomKeyboard onKeyPress={handleTTSKeyPress} />
-                </div>
-                <PauseOverlay />
-              </div>
-            );
-          }
-
-          // === RENDER ONET ===
-          if (gameState === 'onet') {
-            const { rows, cols } = getOnetLevelConfig(currentLevel);
-            return (
-              <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
-                <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
-                <Header title="Onet Match" onHint={useHintOnet} currentLvl={currentLevel} totalLvl={100} />
-                <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
-                  <div className="relative w-full max-w-sm bg-black/20 backdrop-blur-lg p-2 sm:p-4 rounded-3xl border border-white/20 shadow-2xl">
-                    <svg className="absolute inset-0 z-20 pointer-events-none w-full h-full" style={{ overflow: 'visible' }}>
-                      {onetPath && onetPath.map((p, idx) => {
-                        if (idx === 0) return null; const prev = onetPath[idx - 1];
-                        return <line key={idx} x1={`${(prev.c + 0.5) * (100 / cols)}%`} y1={`${(prev.r + 0.5) * (100 / rows)}%`} x2={`${(p.c + 0.5) * (100 / cols)}%`} y2={`${(p.r + 0.5) * (100 / rows)}%`} stroke="#facc15" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse shadow-lg" />;
-                      })}
-                    </svg>
-                    <div className="grid gap-1 sm:gap-2 relative z-10" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}>
-                      {onetGrid.map((row, r) => row.map((cell, c) => {
-                          const isSelected = onetSelected?.r === r && onetSelected?.c === c;
-                          const isHinted = onetHintPair && ((onetHintPair[0].r === r && onetHintPair[0].c === c) || (onetHintPair[1].r === r && onetHintPair[1].c === c));
-                          if (!cell) return <div key={`${r}-${c}`} className="aspect-square bg-transparent" />;
-                          return (
-                            <button key={cell.id} onClick={() => handleOnetClick(r, c)} className={`aspect-square flex items-center justify-center rounded-xl sm:rounded-2xl text-2xl sm:text-4xl font-black cursor-pointer transition-all border-b-4 ${isSelected ? 'bg-yellow-300 border-yellow-500 scale-105 shadow-lg z-10' : isHinted ? 'bg-emerald-400 border-emerald-600 animate-bounce shadow-lg z-10' : 'bg-white/90 border-white/50 text-slate-800 hover:bg-white'} transform active:translate-y-1 active:border-b-0`}>{cell.icon}</button>
-                          )
-                        })
-                      )}
-                    </div>
-                  </div>
-                  {feedback === 'correct' && <div className="mt-6 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300"><CheckCircle size={28} /> Level Selesai! (+10 Poin)</div>}
-                </div>
-                <PauseOverlay />
-              </div>
-            );
-          }
-
-          // === RENDER MAHJONG SUSUN ===
-          if (gameState === 'mahjong') {
-            return (
-              <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
-                <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
-                <Header title="Mahjong Susun" onHint={useHintMahjong} currentLvl={currentLevel} totalLvl={150} />
-
-                <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
-                  <div className="relative w-full max-w-3xl mx-auto aspect-[12/8] bg-black/30 backdrop-blur-lg rounded-[2.5rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 sm:p-8 overflow-visible touch-manipulation">
-                    
-                    <div className="relative w-full h-full">
-                      {mahjongTiles.map((tile) => {
-                        if (!tile.isActive) return null;
-                        
-                        const isSelected = mahjongSelected?.id === tile.id;
-                        const isHinted = mahjongHintPair && (mahjongHintPair[0] === tile.id || mahjongHintPair[1] === tile.id);
-                        const activeRemaining = mahjongTiles.filter(t => t.isActive);
-                        const isFree = isMahjongFree(tile, activeRemaining);
-
-                        const shadowBase = !isFree ? '#64748b' : '#cbd5e1';
-                        const shadowDark = !isFree ? '#475569' : '#94a3b8';
-                        
-                        const blockShadow = isSelected ? '0 0 15px rgba(250,204,21,1), 2px 2px 0 #ca8a04, 4px 4px 0 #a16207' : 
-                                            isHinted ? '0 0 15px rgba(52,211,153,1), 2px 2px 0 #059669, 4px 4px 0 #047857' : 
-                                            `1px 1px 0 ${shadowBase}, 2px 2px 0 ${shadowBase}, 3px 3px 0 ${shadowDark}, 4px 4px 0 ${shadowDark}, 5px 5px 0 ${shadowDark}, 7px 7px 10px rgba(0,0,0,0.5)`;
-
-                        return (
-                          <button
-                            key={tile.id}
-                            onClick={() => handleMahjongClick(tile)}
-                            style={{
-                              left: `${tile.x * 8.33}%`, 
-                              top: `${tile.y * 12.5}%`,  
-                              zIndex: Math.floor(tile.z * 1000 + tile.y * 100 + tile.x * 10) + (isSelected ? 10000 : 0),
-                              transform: `translate(${-tile.z * 4}px, ${-tile.z * 6}px) scale(${isSelected ? 1.05 : 1})`,
-                              width: '7.8%',
-                              height: '11.8%',
-                              boxShadow: blockShadow
-                            }}
-                            className={`absolute flex items-center justify-center text-xl sm:text-2xl lg:text-3xl rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer border border-white/60
-                              ${isSelected ? 'bg-yellow-300 text-yellow-900' : 
-                                isHinted ? 'bg-emerald-400 text-white animate-pulse' : 
-                                !isFree ? 'bg-slate-300 text-slate-800 brightness-[0.6]' : 
-                                'bg-slate-50 text-slate-800 hover:bg-white'
-                              } active:translate-y-1 active:shadow-none
-                            `}
-                          >
-                            {tile.icon}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                  </div>
-                  
-                  {feedback === 'correct' && (
-                    <div className="mt-8 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300">
-                      <CheckCircle size={28} /> Level Selesai! (+10 Poin)
-                    </div>
-                  )}
-                </div>
-                <PauseOverlay />
-              </div>
-            );
-          }
-
-          // === RENDER PIPA BOCOR ===
-          if (gameState === 'pipa') {
-            const { rows, cols } = getPipaLevelConfig(currentLevel);
-            return (
-              <div className="flex flex-col min-h-screen p-4 sm:p-6 text-white relative overflow-hidden">
-                <AnimatedBackground bgIndex={bgIndex} appThemeIndex={appTheme} />
-                <Header title="Pipa Bocor" onHint={useHintPipa} currentLvl={currentLevel} totalLvl={100} />
+                <Header title="Sokoban" onHint={useHintSokoban} currentLvl={currentLevel} totalLvl={sokobanLevels.length} />
                 
                 <div className="flex-1 flex flex-col items-center justify-center z-10 mt-2 w-full">
-                  {/* Box penampung Grid dirubah agar terlihat seperti mesin industrial */}
-                  <div className="relative w-full max-w-md bg-slate-900 p-3 sm:p-4 rounded-[2.5rem] border-8 border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-                    {/* Gap diubah jadi 0 agar sambungan antar pipa menempel rata */}
-                    <div className="grid gap-0 relative z-10 bg-black/60 rounded-xl overflow-hidden shadow-[inset_0_10px_20px_rgba(0,0,0,0.9)]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-                      {pipaGrid.map((row) => row.map((cell) => {
-                        const isStart = cell.r === 0 && cell.c === 0;
-                        const isEnd = cell.r === rows - 1 && cell.c === cols - 1;
-                        const isFlowing = pipaFlow[cell.r][cell.c];
-                        
-                        return (
-                          <button 
-                            key={`${cell.r}-${cell.c}`} 
-                            onClick={() => handlePipaClick(cell.r, cell.c)} 
-                            // Menghilangkan jarak (gap) pada background button
-                            className={`aspect-square bg-transparent hover:bg-white/10 transition-colors flex items-center justify-center transform active:scale-95 ${isFlowing ? 'z-20' : 'z-10'}`}
-                          >
-                            <PipeSVG conns={cell.conns} isFlowing={isFlowing} isStart={isStart} isEnd={isEnd} />
-                          </button>
-                        );
-                      }))}
+                  <div className="flex flex-col items-center w-full max-w-md">
+                    <p className="text-sm font-bold text-white/70 mb-4 bg-black/40 px-4 py-2 rounded-full border border-white/20 text-center shadow-lg">Dorong 📦 ke 🎯. <span className="text-yellow-400">Hint: Skip Level (-3)</span></p>
+                    
+                    <div className="bg-slate-900/80 p-2 sm:p-4 rounded-[2rem] border-4 border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+                      <div className="grid gap-1 bg-black/60 p-2 rounded-2xl shadow-[inset_0_10px_20px_rgba(0,0,0,0.6)] mx-auto" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+                        {sokobanGrid.flatMap((row, r) => row.map((cell, c) => {
+                          let content = null;
+                          let bgClass = "bg-transparent";
+
+                          if (cell === '#') bgClass = "bg-slate-600 shadow-[inset_0_-4px_0_rgba(0,0,0,0.6)] rounded-lg";
+                          else if (cell === ' ') bgClass = "bg-white/5 rounded-lg";
+                          else if (cell === '.') {
+                            bgClass = "bg-white/5 rounded-lg flex items-center justify-center";
+                            content = <div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse" />;
+                          }
+                          else if (cell === '$') {
+                            bgClass = "bg-amber-600 rounded-lg border-b-4 border-amber-800 flex items-center justify-center shadow-lg relative overflow-hidden";
+                            content = <div className="text-xl sm:text-2xl filter drop-shadow-md relative z-10">📦</div>;
+                          }
+                          else if (cell === '*') {
+                            bgClass = "bg-emerald-500 rounded-lg border-b-4 border-emerald-700 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.8)] scale-105 transition-transform z-10";
+                            content = <div className="text-xl sm:text-2xl filter drop-shadow-md">📦</div>;
+                          }
+                          else if (cell === '@' || cell === '+') {
+                            bgClass = "bg-white/5 rounded-lg flex items-center justify-center";
+                            content = (
+                              <div className="relative flex items-center justify-center w-full h-full">
+                                {cell === '+' && <div className="absolute w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
+                                <div className="text-2xl sm:text-3xl filter drop-shadow-lg z-20 transition-transform hover:scale-110">👷</div>
+                              </div>
+                            );
+                          }
+
+                          return <div key={`${r}-${c}`} className={`aspect-square flex items-center justify-center w-7 sm:w-10 relative transition-all ${bgClass}`}>{content}</div>;
+                        }))}
+                      </div>
                     </div>
+
+                    {/* D-PAD KONTROL & TOMBOL AKSI */}
+                    <div className="w-full mt-6 bg-black/40 p-4 rounded-[2rem] border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-between gap-4">
+                      <div className="flex flex-col gap-2 w-1/3">
+                        <button onClick={undoSokobanMove} disabled={sokobanHistory.length === 0} className={`p-2 sm:p-3 rounded-xl flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base font-bold shadow-md transition-all border-b-4 active:border-b-0 active:translate-y-1 ${sokobanHistory.length > 0 ? 'bg-blue-500 border-blue-700 hover:bg-blue-400 text-white' : 'bg-white/10 border-white/10 text-white/30'}`}><RotateCcw size={18} /> Undo</button>
+                        <button onClick={restartSokobanLevel} disabled={sokobanHistory.length === 0} className={`p-2 sm:p-3 rounded-xl flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base font-bold shadow-md transition-all border-b-4 active:border-b-0 active:translate-y-1 ${sokobanHistory.length > 0 ? 'bg-rose-500 border-rose-700 hover:bg-rose-400 text-white' : 'bg-white/10 border-white/10 text-white/30'}`}><RefreshCw size={18} /> Ulangi</button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 w-2/3 max-w-[12rem]">
+                        <div />
+                        <button onClick={()=>handleSokobanMove(-1,0)} className="bg-white/20 hover:bg-white/30 border-b-4 border-white/30 active:border-b-0 active:translate-y-1 p-3 sm:p-4 rounded-xl flex items-center justify-center transition-all shadow-md"><ArrowLeft size={28} className="rotate-90 transform -translate-y-0.5" /></button>
+                        <div />
+                        <button onClick={()=>handleSokobanMove(0,-1)} className="bg-white/20 hover:bg-white/30 border-b-4 border-white/30 active:border-b-0 active:translate-y-1 p-3 sm:p-4 rounded-xl flex items-center justify-center transition-all shadow-md"><ArrowLeft size={28} className="transform -translate-x-0.5" /></button>
+                        <button onClick={()=>handleSokobanMove(1,0)} className="bg-white/20 hover:bg-white/30 border-b-4 border-white/30 active:border-b-0 active:translate-y-1 p-3 sm:p-4 rounded-xl flex items-center justify-center transition-all shadow-md"><ArrowLeft size={28} className="-rotate-90 transform translate-y-0.5" /></button>
+                        <button onClick={()=>handleSokobanMove(0,1)} className="bg-white/20 hover:bg-white/30 border-b-4 border-white/30 active:border-b-0 active:translate-y-1 p-3 sm:p-4 rounded-xl flex items-center justify-center transition-all shadow-md"><ArrowLeft size={28} className="rotate-180 transform translate-x-0.5" /></button>
+                      </div>
+                    </div>
+
                   </div>
                   
                   {feedback === 'correct' && (
-                    <div className="mt-6 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300">
+                    <div className="mt-6 p-4 rounded-3xl font-black flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-xl animate-bounce w-full max-w-xs border-2 border-emerald-300 absolute bottom-[30%] z-50">
                       <CheckCircle size={28} /> Level Selesai! (+10 Poin)
                     </div>
                   )}
